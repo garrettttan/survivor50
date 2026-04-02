@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Draft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --bg:          #0d0a06;
+      --card-bg:     #1c1209;
+      --card-border: #3d2a0f;
+      --fire:        #f97316;
+      --ember:       #dc2626;
+      --text:        #fef3c7;
+      --muted:       #a8995c;
+      --active:      #22c55e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Open Sans', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a0800 0%, #3d1200 50%, #1a0800 100%);
+      border-bottom: 2px solid var(--fire);
+      padding: 1.5rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--fire);
+      text-shadow: 0 0 24px rgba(249,115,22,0.5);
+      letter-spacing: 3px;
+    }
+    header p { color: var(--muted); font-size: 0.8rem; margin-top: 0.4rem; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    section { margin-bottom: 3rem; }
+
+    .section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--fire);
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Standings ───────────────────────────────────────────── */
+    .standings-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .standings-table th {
+      background: #2d1810;
+      color: var(--muted);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+    }
+    .standings-table td {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+      vertical-align: middle;
+    }
+    .standings-table tr:last-child td { border-bottom: none; }
+    .standings-table tr:hover td { background: rgba(249,115,22,0.04); }
+
+    .rank-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .player-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.05rem;
+    }
+    .color-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    .points-cell {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .active-badge {
+      display: inline-block;
+      background: rgba(34,197,94,0.12);
+      color: var(--active);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.6rem;
+    }
+    .guess-cell { font-size: 0.85rem; color: var(--muted); }
+    .guess-alive { color: var(--active); font-weight: 600; }
+    .guess-out   { text-decoration: line-through; opacity: 0.6; }
+
+    /* ── Charts ──────────────────────────────────────────────── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 860px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .chart-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .pill {
+      cursor: pointer;
+      padding: 0.25rem 0.7rem;
+      border-radius: 9999px;
+      border: 1px solid;
+      font-size: 0.75rem;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.5px;
+      background: transparent;
+      transition: opacity 0.15s, filter 0.15s;
+      opacity: 0.55;
+    }
+    .pill.active { opacity: 1; filter: brightness(1.2); }
+    .pill:hover   { opacity: 0.85; }
+
+    /* ── Roster Cards ────────────────────────────────────────── */
+    .rosters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1.5rem;
+    }
+    .roster-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .roster-header {
+      padding: 1rem 1.25rem 0.85rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .roster-player {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .roster-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 0.4rem;
+    }
+    .roster-pts {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .roster-pts-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+    .roster-guess { font-size: 0.8rem; color: var(--muted); text-align: right; }
+    .roster-guess .name { font-weight: 600; display: block; }
+
+    .castaway-list { padding: 0.25rem 0; }
+    .castaway-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.55rem 1.25rem;
+      border-bottom: 1px solid rgba(61,42,15,0.4);
+    }
+    .castaway-row:last-child { border-bottom: none; }
+    .castaway-row.out { opacity: 0.38; }
+    .castaway-row.out .castaway-name { text-decoration: line-through; }
+
+    .castaway-name { font-size: 0.875rem; font-weight: 500; }
+    .castaway-sub  { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.2rem; }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.62rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .badge-tribe { border: 1px solid; } /* color set inline per tribe */
+    .badge-adv   { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
+
+    .castaway-pts {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      min-width: 2.5rem;
+      text-align: right;
+      padding-left: 0.5rem;
+    }
+
+    /* ── Scoring Accordion ───────────────────────────────────── */
+    .accordion-trigger {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: border-color 0.15s;
+    }
+    .accordion-trigger:hover { border-color: var(--fire); }
+    .accordion-trigger-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    .accordion-body {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 1.5rem;
+    }
+    .accordion-body.open { display: block; }
+
+    .scoring-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+    .scoring-cat h4 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      color: var(--fire);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.6rem;
+    }
+    .scoring-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid rgba(61,42,15,0.35);
+      gap: 0.5rem;
+    }
+    .scoring-row:last-child { border-bottom: none; }
+    .scoring-pts { font-family: 'Oswald', sans-serif; color: var(--fire); font-weight: 600; white-space: nowrap; }
+
+    .castaway-chart-wrap {
+      position: relative;
+      height: 580px; /* enough for 24 bars */
+    }
+    @media (max-width: 640px) {
+      .castaway-chart-wrap { height: 480px; }
+    }
+
+    /* ── Mobile ──────────────────────────────────────────────── */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    @media (max-width: 640px) {
+      header { padding: 1rem; }
+      header h1 { font-size: 1.6rem; letter-spacing: 1px; }
+
+      main { padding: 1rem 0.75rem; }
+      section { margin-bottom: 2rem; }
+      .section-title { font-size: 1.1rem; margin-bottom: 1rem; }
+
+      /* Hide Survivor Pick column — visible in roster cards below */
+      .standings-table th:nth-child(5),
+      .standings-table td:nth-child(5) { display: none; }
+      .standings-table th,
+      .standings-table td { padding: 0.6rem 0.75rem; }
+      .points-cell { font-size: 1.1rem; }
+      .rank-num { font-size: 1rem; }
+      .player-name { font-size: 0.95rem; }
+
+      .chart-card { padding: 1rem 0.75rem; }
+
+      /* Bigger touch targets for filter pills */
+      .pill { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+
+      .scoring-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .accordion-body { padding: 1rem 0.75rem; }
+
+      .roster-header { padding: 0.85rem 1rem 0.75rem; }
+      .roster-pts { font-size: 1.6rem; }
+      .castaway-row { padding: 0.5rem 1rem; }
+      .castaway-name { font-size: 0.82rem; }
+
+      .rosters-grid { gap: 1rem; }
+    }
+
+    /* ── Loading / Error ─────────────────────────────────────── */
+    #loading {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--muted);
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+    #error-msg {
+      text-align: center;
+      padding: 4rem 2rem;
+      display: none;
+    }
+    #error-msg h2 { font-family: 'Oswald', sans-serif; color: var(--ember); margin-bottom: 1rem; }
+    #error-msg p  { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1 id="page-title">🔥 SURVIVOR DRAFT</h1>
+  <p id="last-updated"></p>
+</header>
+
+<div id="loading">🔥 Loading draft data…</div>
+<div id="error-msg">
+  <h2>⚠️ Failed to load draft data</h2>
+  <p id="error-detail"></p>
+  <p>Make sure the Google Sheet is set to <strong>"Anyone with the link can view"</strong> and the Sheet ID in <code>config.js</code> is correct.</p>
+</div>
+
+<main id="app" style="display:none">
+
+  <!-- STANDINGS -->
+  <section>
+    <h2 class="section-title">⚔️ STANDINGS</h2>
+    <div class="table-scroll">
+    <table class="standings-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Points</th>
+          <th>Active</th>
+          <th>Survivor Pick</th>
+        </tr>
+      </thead>
+      <tbody id="standings-body"></tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section>
+    <h2 class="section-title">📈 CHARTS</h2>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">Team Cumulative Points</div>
+        <canvas id="team-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Points by Castaway</div>
+        <div class="filter-pills" id="castaway-filters"></div>
+        <div class="castaway-chart-wrap">
+          <canvas id="castaway-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROSTERS -->
+  <section>
+    <h2 class="section-title">🏝️ TEAM ROSTERS</h2>
+    <div class="rosters-grid" id="rosters-grid"></div>
+  </section>
+
+  <!-- SCORING -->
+  <section>
+    <div class="accordion-trigger" onclick="toggleAccordion()">
+      <span class="accordion-trigger-label">📋 HOW SCORING WORKS</span>
+      <span id="accordion-arrow">▼</span>
+    </div>
+    <div class="accordion-body" id="accordion-body">
+      <div class="scoring-grid">
+        <div class="scoring-cat">
+          <h4>Individual Challenges</h4>
+          <div class="scoring-row"><span>Win immunity challenge</span><span class="scoring-pts">4</span></div>
+          <div class="scoring-row"><span>2nd in immunity (2 winners)</span><span class="scoring-pts">2</span></div>
+          <div class="scoring-row"><span>Win reward challenge</span><span class="scoring-pts">2</span></div>
+          <div class="scoring-row"><span>Brought on a reward</span><span class="scoring-pts">1</span></div>
+        </div>
+        <div class="scoring-cat">
+          <h4>Team Challenges</h4>
+          <div class="scoring-row"><span>Win team immunity</span><span class="scoring-pts">2</span></div>
+          <div class="scoring-row"><span>2nd in team immunity</span><span class="scoring-pts">1</span></div>
+          <div class="scoring-row"><span>Win team reward</span><span class="scoring-pts">1</span></div>
+          <div class="scoring-row"><span>2nd in team reward</span><span class="scoring-pts">0.5</span></div>
+        </div>
+        <div class="scoring-cat">
+          <h4>Idols &amp; Advantages</h4>
+          <div class="scoring-row"><span>Find idol or clue</span><span class="scoring-pts">1</span></div>
+          <div class="scoring-row"><span>Play idol (self or others)</span><span class="scoring-pts">2</span></div>
+          <div class="scoring-row"><span>Gain an advantage</span><span class="scoring-pts">1</span></div>
+        </div>
+        <div class="scoring-cat">
+          <h4>Bonus Points</h4>
+          <div class="scoring-row"><span>Make the merge</span><span class="scoring-pts">1</span></div>
+          <div class="scoring-row"><span>FTC vote (per vote received)</span><span class="scoring-pts">1</span></div>
+          <div class="scoring-row"><span>Correct sole survivor pick</span><span class="scoring-pts">15</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let appData = null;
+let teamChartInst = null;
+let castawayChartInst = null;
+
+// Color palette — assigned by alphabetical team order
+// Spread across the full hue wheel so no two neighbors look similar
+const PALETTE = [
+  '#f97316', // orange  — Aditi
+  '#facc15', // yellow  — Amie
+  '#4ade80', // green   — Andrew
+  '#38bdf8', // sky     — Garrett
+  '#a78bfa', // violet  — Jasmine
+  '#f472b6', // pink    — Sydney
+  '#2dd4bf', // teal    — Tiffany  (clearly distinct from orange)
+  '#94a3b8', // slate   — fallback
+];
+
+const TRIBE_COLORS = {
+  'Cila': { color: '#fb923c', bg: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.35)'  },
+  'Kalo': { color: '#2dd4bf', bg: 'rgba(45,212,191,0.15)',  border: 'rgba(45,212,191,0.35)'  },
+  'Vatu': { color: '#f472b6', bg: 'rgba(244,114,182,0.15)', border: 'rgba(244,114,182,0.35)' },
+};
+function tribeBadge(name) {
+  const t = TRIBE_COLORS[name] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', border: 'rgba(148,163,184,0.35)' };
+  return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border}">${name}</span>`;
+}
+
+// ── CSV Parsing ────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  for (let i = 0; i <= text.length; i++) {
+    const c = i < text.length ? text[i] : '\n';
+    if (c === '"') {
+      if (inQ && text[i + 1] === '"') { cell += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      row.push(cell); cell = '';
+    } else if ((c === '\n' || c === '\r') && !inQ) {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell);
+      if (row.some(v => v.trim())) rows.push(row);
+      row = []; cell = '';
+    } else {
+      cell += c;
+    }
+  }
+  return rows;
+}
+
+// ── Data Processing ────────────────────────────────────────────────────────
+function processData(mainRows, scoringRows) {
+  const headers = mainRows[0].map(h => h.trim().toLowerCase());
+  const col = name => headers.indexOf(name.toLowerCase());
+
+  // Find week columns (Week 1 … Week N)
+  const weekCols = [];
+  headers.forEach((h, i) => {
+    const m = h.match(/^week (\d+)$/);
+    if (m) weekCols.push({ num: parseInt(m[1]), idx: i });
+  });
+  weekCols.sort((a, b) => a.num - b.num);
+
+  // Parse castaway rows
+  const castaways = [];
+  for (let r = 1; r < mainRows.length; r++) {
+    const row = mainRows[r];
+    const name = (row[col('contestant')] || '').trim();
+    if (!name) continue;
+
+    const weekPoints = weekCols.map(w => {
+      const v = (row[w.idx] || '').trim();
+      return v === '' ? null : parseFloat(v);
+    });
+
+    // Explicit Eliminated column (if present)
+    const elimIdx = col('eliminated');
+    const elimRaw = elimIdx >= 0 ? (row[elimIdx] || '').trim() : '';
+    const eliminatedExplicit = elimIdx >= 0 ? /^(yes|y|true|x|1)$/i.test(elimRaw) : null;
+
+    castaways.push({
+      name,
+      advantages: (row[col('advantages')] || '').trim(),
+      team: (row[col('team')] || '').trim(),
+      tribe: (row[col('tribe')] || '').trim(),
+      tribe2: (row[col('tribe 2')] || '').trim(),
+      weekPoints,
+      total: parseFloat((row[col('total')] || '').trim()) || 0,
+      eliminated: eliminatedExplicit, // null = not set yet
+    });
+  }
+
+  // Detect current week = last week with at least one non-null score
+  let currentWeekNum = 0;
+  for (let w = weekCols.length - 1; w >= 0; w--) {
+    if (castaways.some(c => c.weekPoints[w] !== null)) {
+      currentWeekNum = weekCols[w].num;
+      break;
+    }
+  }
+  const activeWeeks = weekCols.filter(w => w.num <= currentWeekNum);
+  const currentWeekIdx = weekCols.findIndex(w => w.num === currentWeekNum);
+
+  // Infer eliminated if no explicit column
+  const hasElimCol = col('eliminated') >= 0;
+  castaways.forEach(c => {
+    if (c.eliminated !== null) return; // explicit value present
+    if (!hasElimCol) {
+      // Infer: eliminated if last non-null week < current week
+      const lastData = c.weekPoints.reduce((last, v, i) => v !== null ? i : last, -1);
+      c.eliminated = lastData >= 0 && lastData < currentWeekIdx;
+    } else {
+      c.eliminated = false;
+    }
+  });
+
+  // Compute castaway cumulative points over active weeks
+  castaways.forEach(c => {
+    let cum = 0;
+    c.cumulativePoints = activeWeeks.map(w => {
+      const wi = weekCols.indexOf(w);
+      if (c.weekPoints[wi] !== null) cum += c.weekPoints[wi];
+      return cum;
+    });
+  });
+
+  // Build team map
+  const teamNames = [...new Set(castaways.map(c => c.team).filter(Boolean))].sort();
+  const teamColor = {};
+  teamNames.forEach((t, i) => { teamColor[t] = PALETTE[i % PALETTE.length]; });
+
+  const teams = {};
+  teamNames.forEach(t => {
+    teams[t] = { name: t, totalPoints: 0, castaways: [], activeCount: 0, survivorGuess: null, color: teamColor[t] };
+  });
+  castaways.forEach(c => {
+    if (!teams[c.team]) return;
+    teams[c.team].totalPoints += c.total;
+    teams[c.team].castaways.push(c);
+    if (!c.eliminated) teams[c.team].activeCount++;
+  });
+
+  // Team cumulative points over active weeks
+  teamNames.forEach(t => {
+    let cum = 0;
+    teams[t].cumulativePoints = activeWeeks.map(w => {
+      const wi = weekCols.indexOf(w);
+      teams[t].castaways.forEach(c => {
+        if (c.weekPoints[wi] !== null) cum += c.weekPoints[wi];
+      });
+      return cum;
+    });
+  });
+
+  // Parse survivor guesses from scoring sheet (first two cols, skip header)
+  if (scoringRows.length) {
+    for (let r = 1; r < scoringRows.length; r++) {
+      const tName = (scoringRows[r][0] || '').trim();
+      const guess  = (scoringRows[r][1] || '').trim();
+      if (!tName) break;
+      if (guess && teams[tName]) teams[tName].survivorGuess = guess;
+    }
+  }
+
+  const activeNames = new Set(castaways.filter(c => !c.eliminated).map(c => c.name));
+
+  return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
+}
+
+// ── Chart Helpers ──────────────────────────────────────────────────────────
+function baseChartOptions() {
+  return {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#a8995c', font: { family: 'Oswald', size: 11 }, boxWidth: 12 } },
+      tooltip: {
+        backgroundColor: '#1c1209',
+        borderColor: '#3d2a0f',
+        borderWidth: 1,
+        titleColor: '#fef3c7',
+        bodyColor: '#a8995c',
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` },
+      },
+    },
+    scales: {
+      x: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
+      y: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
+    },
+  };
+}
+
+// ── Render: Standings ──────────────────────────────────────────────────────
+function renderStandings({ teams, teamNames, activeNames }) {
+  const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
+  document.getElementById('standings-body').innerHTML = sorted.map((t, i) => {
+    const tm = teams[t];
+    const rank = i + 1;
+    const guess = tm.survivorGuess;
+    const guessAlive = guess && activeNames.has(guess);
+    const guessHtml = guess
+      ? `<span class="${guessAlive ? 'guess-alive' : 'guess-out'}">${guess}</span> ${guessAlive ? '🟢' : '☠️'}`
+      : '—';
+    return `<tr>
+      <td><span class="rank-num" style="color:${rank === 1 ? 'var(--fire)' : 'var(--muted)'}">${rank === 1 ? '🔥' : rank}</span></td>
+      <td><span class="color-dot" style="background:${tm.color}"></span><span class="player-name">${t}</span></td>
+      <td><span class="points-cell" style="color:${tm.color}">${fmt(tm.totalPoints)}</span></td>
+      <td><span class="active-badge">${tm.activeCount} active</span></td>
+      <td class="guess-cell">${guessHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Render: Team Chart ─────────────────────────────────────────────────────
+function renderTeamChart({ teams, teamNames, activeWeeks }) {
+  const labels = activeWeeks.map(w => `Wk ${w.num}`);
+  const datasets = teamNames.map(t => ({
+    label: t,
+    data: teams[t].cumulativePoints,
+    borderColor: teams[t].color,
+    backgroundColor: teams[t].color + '18',
+    borderWidth: 2.5,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    tension: 0.3,
+  }));
+  const ctx = document.getElementById('team-chart').getContext('2d');
+  if (teamChartInst) teamChartInst.destroy();
+  teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: baseChartOptions() });
+}
+
+// ── Render: Castaway Chart ─────────────────────────────────────────────────
+function stripePattern(ctx, color1, color2, eliminated) {
+  const a = eliminated ? '44' : 'cc';
+  const size = 12;
+  const pat = document.createElement('canvas');
+  pat.width = size; pat.height = size;
+  const pc = pat.getContext('2d');
+  // Fill tile with color1, then overlay top-left triangle with color2
+  // — when tiled, produces diagonal stripes
+  pc.fillStyle = color1 + a;
+  pc.fillRect(0, 0, size, size);
+  pc.fillStyle = color2 + a;
+  pc.beginPath();
+  pc.moveTo(0, 0); pc.lineTo(size, 0); pc.lineTo(0, size);
+  pc.closePath();
+  pc.fill();
+  return ctx.createPattern(pat, 'repeat');
+}
+
+function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
+  const subset = filterTeam === 'All' ? castaways : castaways.filter(c => c.team === filterTeam);
+
+  // Group by castaway name, collecting every team they appear on
+  const byName = new Map();
+  subset.forEach(c => {
+    if (!byName.has(c.name)) {
+      byName.set(c.name, { ...c, teams: [c.team] });
+    } else {
+      const entry = byName.get(c.name);
+      if (!entry.teams.includes(c.team)) entry.teams.push(c.team);
+    }
+  });
+
+  const unique  = [...byName.values()].sort((a, b) => b.total - a.total);
+  const labels  = unique.map(c => c.name);
+  const data    = unique.map(c => c.total);
+
+  const ctx = document.getElementById('castaway-chart').getContext('2d');
+  if (castawayChartInst) castawayChartInst.destroy();
+
+  const bgColors = unique.map(c => {
+    const elim = c.eliminated;
+    if (c.teams.length === 1) return teamColor[c.teams[0]] + (elim ? '44' : 'cc');
+    return stripePattern(ctx, teamColor[c.teams[0]], teamColor[c.teams[1]], elim);
+  });
+  const borders = unique.map(c => teamColor[c.teams[0]]);
+
+  castawayChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: bgColors, borderColor: borders, borderWidth: 1, borderRadius: 3 }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1c1209',
+          borderColor: '#3d2a0f',
+          borderWidth: 1,
+          titleColor: '#fef3c7',
+          bodyColor: '#a8995c',
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.x} pts — ${unique[ctx.dataIndex].teams.join(' + ')}`,
+            afterLabel: ctx => unique[ctx.dataIndex].eliminated ? '  ☠️ eliminated' : '',
+          },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
+        y: { ticks: { color: '#fef3c7', font: { family: 'Open Sans', size: 10 } }, grid: { color: '#3d2a0f' } },
+      },
+    },
+  });
+}
+
+// ── Render: Filter Pills ───────────────────────────────────────────────────
+function renderFilters(data) {
+  const { teamNames, teamColor } = data;
+  const container = document.getElementById('castaway-filters');
+  container.innerHTML = ['All', ...teamNames].map(t => {
+    const color = t === 'All' ? '#a8995c' : teamColor[t];
+    return `<button class="pill ${t === 'All' ? 'active' : ''}"
+      style="border-color:${color};color:${color}"
+      data-team="${t}"
+      onclick="setFilter('${t}')">${t}</button>`;
+  }).join('');
+}
+
+function setFilter(team) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.team === team));
+  renderCastawayChart(appData, team);
+}
+
+// ── Render: Roster Cards ───────────────────────────────────────────────────
+function renderRosters({ teams, teamNames, activeNames }) {
+  const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
+  document.getElementById('rosters-grid').innerHTML = sorted.map(t => {
+    const tm = teams[t];
+    const guess = tm.survivorGuess;
+    const guessAlive = guess && activeNames.has(guess);
+
+    const castawayRows = [...tm.castaways]
+      .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
+      .map(c => {
+        const tribes = [c.tribe, c.tribe2].filter(Boolean);
+        const tribeBadges = tribes.map(tribeBadge).join('');
+        const advBadge = c.advantages ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
+        return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
+          <div>
+            <div class="castaway-name">${c.name}</div>
+            <div class="castaway-sub">${tribeBadges}${advBadge}</div>
+          </div>
+          <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
+        </div>`;
+      }).join('');
+
+    const guessSection = guess ? `
+      <div class="roster-guess">
+        🏆 Pick
+        <span class="name ${guessAlive ? 'guess-alive' : 'guess-out'}">${guess} ${guessAlive ? '🟢' : '☠️'}</span>
+      </div>` : '';
+
+    return `<div class="roster-card" style="border-top:3px solid ${tm.color}">
+      <div class="roster-header">
+        <div class="roster-player" style="color:${tm.color}">${t}</div>
+        <div class="roster-meta">
+          <div>
+            <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
+            <div class="roster-pts-label">pts · ${tm.activeCount} active</div>
+          </div>
+          ${guessSection}
+        </div>
+      </div>
+      <div class="castaway-list">${castawayRows}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Accordion ──────────────────────────────────────────────────────────────
+function toggleAccordion() {
+  const body = document.getElementById('accordion-body');
+  const arrow = document.getElementById('accordion-arrow');
+  body.classList.toggle('open');
+  arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function fmt(n) {
+  const s = n.toFixed(1);
+  return s.endsWith('.0') ? s.slice(0, -2) : s;
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+async function main() {
+  document.getElementById('page-title').textContent = `🔥 ${CONFIG.SEASON_TITLE.toUpperCase()}`;
+  document.title = CONFIG.SEASON_TITLE;
+
+  const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+
+  try {
+    const [mainRes, scoringRes] = await Promise.all([
+      fetch(base + encodeURIComponent(CONFIG.MAIN_SHEET)),
+      fetch(base + encodeURIComponent(CONFIG.SCORING_SHEET)).catch(() => null),
+    ]);
+
+    if (!mainRes.ok) throw new Error(`HTTP ${mainRes.status} — check that the sheet is publicly shared.`);
+
+    const mainText    = await mainRes.text();
+    const scoringText = scoringRes && scoringRes.ok ? await scoringRes.text() : '';
+
+    appData = processData(parseCSV(mainText), scoringText ? parseCSV(scoringText) : []);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    renderStandings(appData);
+    renderTeamChart(appData);
+    renderFilters(appData);
+    renderCastawayChart(appData);
+    renderRosters(appData);
+
+    document.getElementById('last-updated').textContent =
+      `Updated ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('error-msg');
+    el.style.display = 'block';
+    document.getElementById('error-detail').textContent = err.message;
+  }
+}
+
+main();
+</script>
+</body>
+</html>
