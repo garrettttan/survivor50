@@ -685,7 +685,9 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
   }));
   const ctx = document.getElementById('team-chart').getContext('2d');
   if (teamChartInst) teamChartInst.destroy();
-  teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: baseChartOptions() });
+  const opts = baseChartOptions();
+  opts.plugins.tooltip.itemSort = (a, b) => b.parsed.y - a.parsed.y;
+  teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: opts });
 }
 
 // ── Render: Castaway Chart ─────────────────────────────────────────────────
@@ -846,7 +848,7 @@ function fmt(n) {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main() {
-  document.getElementById('page-title').textContent = `🔥 ${CONFIG.SEASON_TITLE.toUpperCase()}`;
+  document.getElementById('page-title').textContent = `🔥 ${CONFIG.SEASON_TITLE.toUpperCase()} 🔥`;
   document.title = CONFIG.SEASON_TITLE;
 
   const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;

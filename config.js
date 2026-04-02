@@ -7,5 +7,5 @@ const CONFIG = {
   SCORING_SHEET: "Scoring",
 
   // Displayed in the page header
-  SEASON_TITLE: "Survivor Draft",
+  SEASON_TITLE: "Survivor 50",
 };
