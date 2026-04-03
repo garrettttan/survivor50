@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Survivor Draft</title>
+  <title>Survivor 50</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -302,6 +302,75 @@
       .castaway-chart-wrap { height: 480px; }
     }
 
+    /* ── Castaway Modal ────────────────────────────────────────── */
+    .clickable { cursor: pointer; transition: color 0.15s; }
+    .clickable:hover { color: var(--fire); text-decoration: underline; }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      max-width: 500px; width: 100%;
+      max-height: 85vh; overflow-y: auto;
+      position: relative;
+      padding: 2rem 1.5rem;
+    }
+    .modal-close {
+      position: absolute; top: 0.75rem; right: 1rem;
+      background: none; border: none;
+      color: var(--muted); font-size: 1.5rem;
+      cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--fire); }
+
+    .modal-castaway-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.6rem; font-weight: 700;
+      color: var(--fire);
+    }
+    .modal-castaway-meta {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-top: 0.4rem; flex-wrap: wrap;
+    }
+    .modal-pts {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem; font-weight: 700;
+    }
+    .modal-owner {
+      font-size: 0.8rem; color: var(--muted);
+    }
+
+    .modal-tribe-section { margin-top: 1.5rem; }
+    .modal-tribe-header {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .modal-tribemate {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(61,42,15,0.4);
+      font-size: 0.85rem;
+    }
+    .modal-tribemate:last-child { border-bottom: none; }
+    .modal-tribemate.out { opacity: 0.38; }
+    .modal-tribemate.out .modal-tribemate-name { text-decoration: line-through; }
+    .modal-tribemate-name { flex: 1; font-weight: 500; }
+    .modal-tribemate-owner { font-size: 0.75rem; margin-right: 0.75rem; }
+    .modal-tribemate-pts {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600; min-width: 2rem; text-align: right;
+    }
+
     /* ── Mobile ──────────────────────────────────────────────── */
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -336,6 +405,9 @@
       .castaway-name { font-size: 0.82rem; }
 
       .rosters-grid { gap: 1rem; }
+
+      .modal-content { padding: 1.5rem 1rem; }
+      .modal-castaway-name { font-size: 1.3rem; }
     }
 
     /* ── Loading / Error ─────────────────────────────────────── */
@@ -359,7 +431,7 @@
 <body>
 
 <header>
-  <h1 id="page-title">🔥 SURVIVOR DRAFT</h1>
+  <h1 id="page-title">🔥 SURVIVOR 50 🔥</h1>
   <p id="last-updated"></p>
 </header>
 
@@ -454,6 +526,13 @@
   </section>
 
 </main>
+
+<div id="castaway-modal" class="modal-overlay" style="display:none" onclick="closeCastawayModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeCastawayModal()">&times;</button>
+    <div id="castaway-modal-body"></div>
+  </div>
+</div>
 
 <script>
 // ── State ─────────────────────────────────────────────────────────────────
@@ -747,6 +826,9 @@ function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      onClick: (event, elements) => {
+        if (elements.length > 0) openCastawayModal(unique[elements[0].index].name);
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -803,7 +885,7 @@ function renderRosters({ teams, teamNames, activeNames }) {
         const advBadge = c.advantages ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
         return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
           <div>
-            <div class="castaway-name">${c.name}</div>
+            <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
             <div class="castaway-sub">${tribeBadges}${advBadge}</div>
           </div>
           <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
@@ -839,6 +921,91 @@ function toggleAccordion() {
   body.classList.toggle('open');
   arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
 }
+
+// ── Castaway Modal ─────────────────────────────────────────────────────────
+function openCastawayModal(name) {
+  const c = appData.castaways.find(x => x.name === name);
+  if (!c) return;
+
+  // Collect all fantasy teams that drafted this castaway
+  const allEntries = appData.castaways.filter(x => x.name === name);
+  const draftedBy = [...new Set(allEntries.map(x => x.team))];
+  const ownerColor = appData.teamColor[c.team] || '#94a3b8';
+  const draftedByHtml = draftedBy.map(t => `<strong style="color:${appData.teamColor[t] || '#94a3b8'}">${t}</strong>`).join(', ');
+  const statusBadge = c.eliminated
+    ? '<span style="color:var(--ember);font-size:0.8rem">☠️ Eliminated</span>'
+    : '<span class="active-badge">Active</span>';
+
+  const advHtml = c.advantages
+    ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
+
+  function tribemateRows(tribeName, tribeField) {
+    const all = appData.castaways.filter(x => x[tribeField] === tribeName && x.name !== name);
+    // Deduplicate by name, collecting all fantasy teams
+    const byName = new Map();
+    all.forEach(m => {
+      if (!byName.has(m.name)) {
+        byName.set(m.name, { ...m, teams: [m.team] });
+      } else {
+        const entry = byName.get(m.name);
+        if (!entry.teams.includes(m.team)) entry.teams.push(m.team);
+      }
+    });
+    const mates = [...byName.values()].sort((a, b) => a.eliminated - b.eliminated || b.total - a.total);
+    if (!mates.length) return '<div style="font-size:0.8rem;color:var(--muted)">No tribemates found</div>';
+    return mates.map(m => {
+      const ownerLabels = m.teams.map(t => {
+        const c = appData.teamColor[t] || '#94a3b8';
+        return `<span style="color:${c}">${t}</span>`;
+      }).join(', ');
+      const mColor = appData.teamColor[m.teams[0]] || '#94a3b8';
+      return `<div class="modal-tribemate ${m.eliminated ? 'out' : ''}">
+        <span class="modal-tribemate-name clickable" data-castaway="${m.name.replace(/"/g, '&quot;')}">${m.name}</span>
+        <span class="modal-tribemate-owner">${ownerLabels}</span>
+        <span class="modal-tribemate-pts" style="color:${m.eliminated ? 'var(--muted)' : mColor}">${fmt(m.total)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  let tribesHtml = '';
+  if (c.tribe) {
+    tribesHtml += `<div class="modal-tribe-section">
+      <div class="modal-tribe-header">Original Tribe ${tribeBadge(c.tribe)}</div>
+      ${tribemateRows(c.tribe, 'tribe')}
+    </div>`;
+  }
+  if (c.tribe2) {
+    tribesHtml += `<div class="modal-tribe-section">
+      <div class="modal-tribe-header">Swap Tribe ${tribeBadge(c.tribe2)}</div>
+      ${tribemateRows(c.tribe2, 'tribe2')}
+    </div>`;
+  }
+
+  document.getElementById('castaway-modal-body').innerHTML = `
+    <div class="modal-castaway-name">${c.name}</div>
+    <div class="modal-castaway-meta">
+      <span class="modal-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
+      ${statusBadge} ${advHtml}
+    </div>
+    <div class="modal-owner">Drafted by ${draftedByHtml}</div>
+    ${tribesHtml}
+  `;
+
+  document.getElementById('castaway-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCastawayModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('castaway-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCastawayModal(); });
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-castaway]');
+  if (el) openCastawayModal(el.dataset.castaway);
+});
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 function fmt(n) {
