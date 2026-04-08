@@ -26,10 +26,12 @@
       color: var(--text);
       font-family: 'Open Sans', system-ui, sans-serif;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* ── Header ─────────────────────────────────────────────── */
     header {
+      position: relative;
       background: linear-gradient(135deg, #1a0800 0%, #3d1200 50%, #1a0800 100%);
       border-bottom: 2px solid var(--fire);
       padding: 1.5rem 2rem;
@@ -138,6 +140,8 @@
       border: 1px solid var(--card-border);
       border-radius: 8px;
       padding: 1.5rem;
+      min-width: 0;
+      overflow: hidden;
     }
     .chart-label {
       font-family: 'Oswald', sans-serif;
@@ -240,35 +244,67 @@
       padding-left: 0.5rem;
     }
 
-    /* ── Scoring Accordion ───────────────────────────────────── */
-    .accordion-trigger {
-      background: var(--card-bg);
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .hamburger {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
       border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 1rem 1.5rem;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 1.4rem;
       cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-      transition: border-color 0.15s;
+      padding: 0.3rem 0.55rem;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
     }
-    .accordion-trigger:hover { border-color: var(--fire); }
-    .accordion-trigger-label {
+    .hamburger:hover { color: var(--fire); border-color: var(--fire); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+    }
+    .sidebar-overlay.open { display: block; }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 100vh;
+      background: var(--card-bg);
+      border-right: 1px solid var(--card-border);
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      padding-top: 5rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-item {
       font-family: 'Oswald', sans-serif;
       font-size: 1rem;
       color: var(--muted);
+      padding: 0.9rem 1.5rem;
+      cursor: pointer;
       letter-spacing: 1px;
+      border-left: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      user-select: none;
     }
-    .accordion-body {
-      display: none;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      padding: 1.5rem;
+    .sidebar-item:hover { color: var(--text); background: rgba(61,42,15,0.3); }
+    .sidebar-item.active {
+      color: var(--fire);
+      border-left-color: var(--fire);
+      background: rgba(249,115,22,0.08);
     }
-    .accordion-body.open { display: block; }
 
     .scoring-grid {
       display: grid;
@@ -293,6 +329,14 @@
     }
     .scoring-row:last-child { border-bottom: none; }
     .scoring-pts { font-family: 'Oswald', sans-serif; color: var(--fire); font-weight: 600; white-space: nowrap; }
+
+    .team-chart-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .team-chart-inner {
+      height: 350px;
+    }
 
     .castaway-chart-wrap {
       position: relative;
@@ -365,14 +409,10 @@
     .modal-tribemate.out { opacity: 0.38; }
     .modal-tribemate.out .modal-tribemate-name { text-decoration: line-through; }
     .modal-tribemate-name { flex: 1; font-weight: 500; }
-    .modal-tribemate-owner { font-size: 0.75rem; margin-right: 0.75rem; }
-    .modal-tribemate-pts {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 600; min-width: 2rem; text-align: right;
-    }
+    .modal-tribemate-owner { font-size: 0.75rem; }
 
     /* ── Mobile ──────────────────────────────────────────────── */
-    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 
     @media (max-width: 640px) {
       header { padding: 1rem; }
@@ -396,15 +436,14 @@
       /* Bigger touch targets for filter pills */
       .pill { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
 
-      .scoring-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
-      .accordion-body { padding: 1rem 0.75rem; }
+      .scoring-grid { grid-template-columns: 1fr; gap: 1rem; }
+
+      .rosters-grid { grid-template-columns: 1fr; gap: 1rem; }
 
       .roster-header { padding: 0.85rem 1rem 0.75rem; }
       .roster-pts { font-size: 1.6rem; }
       .castaway-row { padding: 0.5rem 1rem; }
       .castaway-name { font-size: 0.82rem; }
-
-      .rosters-grid { gap: 1rem; }
 
       .modal-content { padding: 1.5rem 1rem; }
       .modal-castaway-name { font-size: 1.3rem; }
@@ -431,6 +470,7 @@
 <body>
 
 <header>
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
   <h1 id="page-title">🔥 SURVIVOR 50 🔥</h1>
   <p id="last-updated"></p>
 </header>
@@ -442,7 +482,14 @@
   <p>Make sure the Google Sheet is set to <strong>"Anyone with the link can view"</strong> and the Sheet ID in <code>config.js</code> is correct.</p>
 </div>
 
-<main id="app" style="display:none">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar">
+  <div id="sidebar-seasons"></div>
+  <div class="sidebar-item" data-tab="scoring" onclick="switchTab('scoring')">Scoring</div>
+</nav>
+
+<div id="app" style="display:none">
+<main id="tab-season">
 
   <!-- STANDINGS -->
   <section>
@@ -467,11 +514,15 @@
   <section>
     <h2 class="section-title">📈 CHARTS</h2>
     <div class="charts-grid">
-      <div class="chart-card">
+      <div class="chart-card" style="grid-column: 1 / -1">
         <div class="chart-label">Team Cumulative Points</div>
-        <canvas id="team-chart"></canvas>
+        <div class="team-chart-scroll">
+          <div class="team-chart-inner">
+            <canvas id="team-chart"></canvas>
+          </div>
+        </div>
       </div>
-      <div class="chart-card">
+      <div class="chart-card" style="grid-column: 1 / -1">
         <div class="chart-label">Points by Castaway</div>
         <div class="filter-pills" id="castaway-filters"></div>
         <div class="castaway-chart-wrap">
@@ -487,45 +538,43 @@
     <div class="rosters-grid" id="rosters-grid"></div>
   </section>
 
-  <!-- SCORING -->
+</main>
+
+<main id="tab-scoring" style="display:none">
   <section>
-    <div class="accordion-trigger" onclick="toggleAccordion()">
-      <span class="accordion-trigger-label">📋 HOW SCORING WORKS</span>
-      <span id="accordion-arrow">▼</span>
-    </div>
-    <div class="accordion-body" id="accordion-body">
-      <div class="scoring-grid">
-        <div class="scoring-cat">
-          <h4>Individual Challenges</h4>
-          <div class="scoring-row"><span>Win immunity challenge</span><span class="scoring-pts">4</span></div>
-          <div class="scoring-row"><span>2nd in immunity (2 winners)</span><span class="scoring-pts">2</span></div>
-          <div class="scoring-row"><span>Win reward challenge</span><span class="scoring-pts">2</span></div>
-          <div class="scoring-row"><span>Brought on a reward</span><span class="scoring-pts">1</span></div>
-        </div>
-        <div class="scoring-cat">
-          <h4>Team Challenges</h4>
-          <div class="scoring-row"><span>Win team immunity</span><span class="scoring-pts">2</span></div>
-          <div class="scoring-row"><span>2nd in team immunity</span><span class="scoring-pts">1</span></div>
-          <div class="scoring-row"><span>Win team reward</span><span class="scoring-pts">1</span></div>
-          <div class="scoring-row"><span>2nd in team reward</span><span class="scoring-pts">0.5</span></div>
-        </div>
-        <div class="scoring-cat">
-          <h4>Idols &amp; Advantages</h4>
-          <div class="scoring-row"><span>Find idol or clue</span><span class="scoring-pts">1</span></div>
-          <div class="scoring-row"><span>Play idol (self or others)</span><span class="scoring-pts">2</span></div>
-          <div class="scoring-row"><span>Gain an advantage</span><span class="scoring-pts">1</span></div>
-        </div>
-        <div class="scoring-cat">
-          <h4>Bonus Points</h4>
-          <div class="scoring-row"><span>Make the merge</span><span class="scoring-pts">1</span></div>
-          <div class="scoring-row"><span>FTC vote (per vote received)</span><span class="scoring-pts">1</span></div>
-          <div class="scoring-row"><span>Correct sole survivor pick</span><span class="scoring-pts">15</span></div>
-        </div>
+    <h2 class="section-title">📋 HOW SCORING WORKS</h2>
+    <div class="scoring-grid">
+      <div class="scoring-cat">
+        <h4>Individual Challenges</h4>
+        <div class="scoring-row"><span>Win immunity challenge</span><span class="scoring-pts">4</span></div>
+        <div class="scoring-row"><span>2nd in immunity (2 winners)</span><span class="scoring-pts">2</span></div>
+        <div class="scoring-row"><span>Win reward challenge</span><span class="scoring-pts">2</span></div>
+        <div class="scoring-row"><span>Brought on a reward</span><span class="scoring-pts">1</span></div>
+      </div>
+      <div class="scoring-cat">
+        <h4>Team Challenges</h4>
+        <div class="scoring-row"><span>Win team immunity</span><span class="scoring-pts">2</span></div>
+        <div class="scoring-row"><span>2nd in team immunity</span><span class="scoring-pts">1</span></div>
+        <div class="scoring-row"><span>Win team reward</span><span class="scoring-pts">1</span></div>
+        <div class="scoring-row"><span>2nd in team reward</span><span class="scoring-pts">0.5</span></div>
+      </div>
+      <div class="scoring-cat">
+        <h4>Idols &amp; Advantages</h4>
+        <div class="scoring-row"><span>Find idol or clue</span><span class="scoring-pts">1</span></div>
+        <div class="scoring-row"><span>Play idol (self or others)</span><span class="scoring-pts">2</span></div>
+        <div class="scoring-row"><span>Gain an advantage</span><span class="scoring-pts">1</span></div>
+      </div>
+      <div class="scoring-cat">
+        <h4>Bonus Points</h4>
+        <div class="scoring-row"><span>Make the merge</span><span class="scoring-pts">1</span></div>
+        <div class="scoring-row"><span>FTC vote (per vote received)</span><span class="scoring-pts">1</span></div>
+        <div class="scoring-row"><span>Correct sole survivor pick</span><span class="scoring-pts">15</span></div>
       </div>
     </div>
   </section>
-
 </main>
+
+</div>
 
 <div id="castaway-modal" class="modal-overlay" style="display:none" onclick="closeCastawayModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
@@ -537,29 +586,47 @@
 <script>
 // ── State ─────────────────────────────────────────────────────────────────
 let appData = null;
+let activeSeason = null;
 let teamChartInst = null;
 let castawayChartInst = null;
 
+function fmt(n) {
+  const s = n.toFixed(1);
+  return s.endsWith('.0') ? s.slice(0, -2) : s;
+}
+
 // Color palette — assigned by alphabetical team order
-// Spread across the full hue wheel so no two neighbors look similar
 const PALETTE = [
-  '#f97316', // orange  — Aditi
-  '#facc15', // yellow  — Amie
-  '#4ade80', // green   — Andrew
-  '#38bdf8', // sky     — Garrett
-  '#a78bfa', // violet  — Jasmine
-  '#f472b6', // pink    — Sydney
-  '#2dd4bf', // teal    — Tiffany  (clearly distinct from orange)
-  '#94a3b8', // slate   — fallback
+  '#f97316', // orange
+  '#facc15', // yellow
+  '#4ade80', // green
+  '#38bdf8', // sky
+  '#a78bfa', // violet
+  '#f472b6', // pink
+  '#2dd4bf', // teal
+  '#94a3b8', // slate (fallback)
 ];
 
-const TRIBE_COLORS = {
-  'Cila': { color: '#fb923c', bg: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.35)'  },
-  'Kalo': { color: '#2dd4bf', bg: 'rgba(45,212,191,0.15)',  border: 'rgba(45,212,191,0.35)'  },
-  'Vatu': { color: '#f472b6', bg: 'rgba(244,114,182,0.15)', border: 'rgba(244,114,182,0.35)' },
-};
+// Tribe colors — loaded from Config sheet, keyed by "Season|Tribe"
+let tribeColorMap = {};
+// Winner picks — loaded from "Winner picks" sheet, keyed by season title
+let winnerPicks = {};
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function getTribeColor(name) {
+  const key = activeSeason ? `${activeSeason.title}|${name}` : name;
+  const hex = tribeColorMap[key] || '#94a3b8';
+  return { color: hex, bg: hexToRgba(hex, 0.15), border: hexToRgba(hex, 0.35) };
+}
+
 function tribeBadge(name) {
-  const t = TRIBE_COLORS[name] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', border: 'rgba(148,163,184,0.35)' };
+  const t = getTribeColor(name);
   return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border}">${name}</span>`;
 }
 
@@ -616,12 +683,15 @@ function processData(mainRows, scoringRows) {
     const elimRaw = elimIdx >= 0 ? (row[elimIdx] || '').trim() : '';
     const eliminatedExplicit = elimIdx >= 0 ? /^(yes|y|true|x|1)$/i.test(elimRaw) : null;
 
+    const tribes = ['tribe 1', 'tribe 2', 'tribe 3']
+      .map(t => ({ field: t, value: (row[col(t)] || '').trim() }))
+      .filter(t => t.value);
+
     castaways.push({
       name,
       advantages: (row[col('advantages')] || '').trim(),
       team: (row[col('team')] || '').trim(),
-      tribe: (row[col('tribe')] || '').trim(),
-      tribe2: (row[col('tribe 2')] || '').trim(),
+      tribes,
       weekPoints,
       total: parseFloat((row[col('total')] || '').trim()) || 0,
       eliminated: eliminatedExplicit, // null = not set yet
@@ -690,15 +760,10 @@ function processData(mainRows, scoringRows) {
     });
   });
 
-  // Parse survivor guesses from scoring sheet (first two cols, skip header)
-  if (scoringRows.length) {
-    for (let r = 1; r < scoringRows.length; r++) {
-      const tName = (scoringRows[r][0] || '').trim();
-      const guess  = (scoringRows[r][1] || '').trim();
-      if (!tName) break;
-      if (guess && teams[tName]) teams[tName].survivorGuess = guess;
-    }
-  }
+  // Apply survivor guesses (pre-filtered [name, pick] pairs)
+  scoringRows.forEach(([tName, guess]) => {
+    if (tName && guess && teams[tName]) teams[tName].survivorGuess = guess;
+  });
 
   const activeNames = new Set(castaways.filter(c => !c.eliminated).map(c => c.name));
 
@@ -762,9 +827,14 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
     pointHoverRadius: 6,
     tension: 0.3,
   }));
+  // Set min-width so the chart is scrollable on mobile for many weeks
+  const inner = document.querySelector('.team-chart-inner');
+  inner.style.minWidth = Math.max(labels.length * 50, 300) + 'px';
+
   const ctx = document.getElementById('team-chart').getContext('2d');
   if (teamChartInst) teamChartInst.destroy();
   const opts = baseChartOptions();
+  opts.maintainAspectRatio = false;
   opts.plugins.tooltip.itemSort = (a, b) => b.parsed.y - a.parsed.y;
   teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: opts });
 }
@@ -880,8 +950,7 @@ function renderRosters({ teams, teamNames, activeNames }) {
     const castawayRows = [...tm.castaways]
       .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
       .map(c => {
-        const tribes = [c.tribe, c.tribe2].filter(Boolean);
-        const tribeBadges = tribes.map(tribeBadge).join('');
+        const tribeBadges = c.tribes.map(t => tribeBadge(t.value)).join('');
         const advBadge = c.advantages ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
         return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
           <div>
@@ -914,12 +983,26 @@ function renderRosters({ teams, teamNames, activeNames }) {
   }).join('');
 }
 
-// ── Accordion ──────────────────────────────────────────────────────────────
-function toggleAccordion() {
-  const body = document.getElementById('accordion-body');
-  const arrow = document.getElementById('accordion-arrow');
-  body.classList.toggle('open');
-  arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+// ── Sidebar & Tabs ────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-season').style.display = tab === 'scoring' ? 'none' : '';
+  document.getElementById('tab-scoring').style.display = tab === 'scoring' ? '' : 'none';
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  toggleSidebar();
+  if (tab !== 'scoring') loadSeason(CONFIG.SEASONS.find(s => s.title === tab));
+}
+
+function renderSidebar() {
+  document.getElementById('sidebar-seasons').innerHTML = CONFIG.SEASONS.map((s, i) =>
+    `<div class="sidebar-item ${i === 0 ? 'active' : ''}" data-tab="${s.title}" onclick="switchTab('${s.title}')">${s.title}</div>`
+  ).join('');
 }
 
 // ── Castaway Modal ─────────────────────────────────────────────────────────
@@ -940,7 +1023,7 @@ function openCastawayModal(name) {
     ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
 
   function tribemateRows(tribeName, tribeField) {
-    const all = appData.castaways.filter(x => x[tribeField] === tribeName && x.name !== name);
+    const all = appData.castaways.filter(x => x.tribes.some(t => t.field === tribeField && t.value === tribeName) && x.name !== name);
     // Deduplicate by name, collecting all fantasy teams
     const byName = new Map();
     all.forEach(m => {
@@ -958,28 +1041,18 @@ function openCastawayModal(name) {
         const c = appData.teamColor[t] || '#94a3b8';
         return `<span style="color:${c}">${t}</span>`;
       }).join(', ');
-      const mColor = appData.teamColor[m.teams[0]] || '#94a3b8';
       return `<div class="modal-tribemate ${m.eliminated ? 'out' : ''}">
         <span class="modal-tribemate-name clickable" data-castaway="${m.name.replace(/"/g, '&quot;')}">${m.name}</span>
         <span class="modal-tribemate-owner">${ownerLabels}</span>
-        <span class="modal-tribemate-pts" style="color:${m.eliminated ? 'var(--muted)' : mColor}">${fmt(m.total)}</span>
       </div>`;
     }).join('');
   }
 
-  let tribesHtml = '';
-  if (c.tribe) {
-    tribesHtml += `<div class="modal-tribe-section">
-      <div class="modal-tribe-header">Original Tribe ${tribeBadge(c.tribe)}</div>
-      ${tribemateRows(c.tribe, 'tribe')}
-    </div>`;
-  }
-  if (c.tribe2) {
-    tribesHtml += `<div class="modal-tribe-section">
-      <div class="modal-tribe-header">Swap Tribe ${tribeBadge(c.tribe2)}</div>
-      ${tribemateRows(c.tribe2, 'tribe2')}
-    </div>`;
-  }
+  const tribeLabels = ['Tribe 1', 'Tribe 2', 'Tribe 3'];
+  const tribesHtml = c.tribes.map((t, i) => `<div class="modal-tribe-section">
+      <div class="modal-tribe-header">${tribeLabels[i] || t.field} ${tribeBadge(t.value)}</div>
+      ${tribemateRows(t.value, t.field)}
+    </div>`).join('');
 
   document.getElementById('castaway-modal-body').innerHTML = `
     <div class="modal-castaway-name">${c.name}</div>
@@ -1007,31 +1080,24 @@ document.addEventListener('click', e => {
   if (el) openCastawayModal(el.dataset.castaway);
 });
 
-// ── Utilities ──────────────────────────────────────────────────────────────
-function fmt(n) {
-  const s = n.toFixed(1);
-  return s.endsWith('.0') ? s.slice(0, -2) : s;
-}
+// ── Load Season ───────────────────────────────────────────────────────────
+async function loadSeason(season) {
+  if (!season || season === activeSeason) return;
+  activeSeason = season;
 
-// ── Main ───────────────────────────────────────────────────────────────────
-async function main() {
-  document.getElementById('page-title').textContent = `🔥 ${CONFIG.SEASON_TITLE.toUpperCase()} 🔥`;
-  document.title = CONFIG.SEASON_TITLE;
+  document.getElementById('page-title').textContent = `🔥 ${season.title.toUpperCase()} 🔥`;
+  document.title = season.title;
 
   const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
 
   try {
-    const [mainRes, scoringRes] = await Promise.all([
-      fetch(base + encodeURIComponent(CONFIG.MAIN_SHEET)),
-      fetch(base + encodeURIComponent(CONFIG.SCORING_SHEET)).catch(() => null),
-    ]);
-
+    const mainRes = await fetch(base + encodeURIComponent(season.mainSheet));
     if (!mainRes.ok) throw new Error(`HTTP ${mainRes.status} — check that the sheet is publicly shared.`);
 
-    const mainText    = await mainRes.text();
-    const scoringText = scoringRes && scoringRes.ok ? await scoringRes.text() : '';
+    const mainText = await mainRes.text();
+    const seasonPicks = (winnerPicks[season.title] || []).map(p => [p.name, p.pick]);
 
-    appData = processData(parseCSV(mainText), scoringText ? parseCSV(scoringText) : []);
+    appData = processData(parseCSV(mainText), seasonPicks);
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -1051,6 +1117,50 @@ async function main() {
     el.style.display = 'block';
     document.getElementById('error-detail').textContent = err.message;
   }
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+async function main() {
+  const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+
+  // Fetch Config and Winner picks sheets in parallel at startup
+  const [configRes, picksRes] = await Promise.all([
+    fetch(base + encodeURIComponent('Config')).catch(() => null),
+    fetch(base + encodeURIComponent('Winner picks')).catch(() => null),
+  ]);
+
+  // Parse tribe colors from Config sheet
+  try {
+    if (configRes && configRes.ok) {
+      const rows = parseCSV(await configRes.text());
+      for (let r = 1; r < rows.length; r++) {
+        const season = (rows[r][0] || '').trim();
+        const tribe  = (rows[r][1] || '').trim();
+        const color  = (rows[r][2] || '').trim();
+        if (season && tribe && color) tribeColorMap[`Season ${season}|${tribe}`] = color;
+      }
+    }
+  } catch (_) {}
+
+  // Parse winner picks, grouped by season
+  try {
+    if (picksRes && picksRes.ok) {
+      const rows = parseCSV(await picksRes.text());
+      for (let r = 1; r < rows.length; r++) {
+        const season = (rows[r][0] || '').trim();
+        const name   = (rows[r][1] || '').trim();
+        const pick   = (rows[r][2] || '').trim();
+        const seasonKey = `Season ${season}`;
+        if (season && name) {
+          if (!winnerPicks[seasonKey]) winnerPicks[seasonKey] = [];
+          winnerPicks[seasonKey].push({ name, pick });
+        }
+      }
+    }
+  } catch (_) {}
+
+  renderSidebar();
+  loadSeason(CONFIG.SEASONS[0]);
 }
 
 main();
