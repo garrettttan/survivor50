@@ -4,5 +4,6 @@ const CONFIG = {
   SEASONS: [
     { title: "Season 50", mainSheet: "Season 50" },
     { title: "Season 49", mainSheet: "Season 49" },
+    { title: "Season 48", mainSheet: "Season 48" },
   ],
 };
