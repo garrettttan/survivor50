@@ -765,7 +765,13 @@ function processData(mainRows, scoringRows) {
     if (tName && guess && teams[tName]) teams[tName].survivorGuess = guess;
   });
 
-  const activeNames = new Set(castaways.filter(c => !c.eliminated).map(c => c.name));
+  const activeCastaways = castaways.filter(c => !c.eliminated);
+  const activeNames = {
+    has(guess) {
+      const g = guess.trim().toLowerCase();
+      return activeCastaways.some(c => c.name.toLowerCase() === g || c.name.toLowerCase().startsWith(g + ' '));
+    }
+  };
 
   return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
 }
@@ -842,19 +848,15 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
 // ── Render: Castaway Chart ─────────────────────────────────────────────────
 function stripePattern(ctx, color1, color2, eliminated) {
   const a = eliminated ? '44' : 'cc';
-  const size = 12;
+  const size = 16;
   const pat = document.createElement('canvas');
   pat.width = size; pat.height = size;
   const pc = pat.getContext('2d');
-  // Fill tile with color1, then overlay top-left triangle with color2
-  // — when tiled, produces diagonal stripes
+  // Vertical stripes — each color gets half the tile
   pc.fillStyle = color1 + a;
-  pc.fillRect(0, 0, size, size);
+  pc.fillRect(0, 0, size / 2, size);
   pc.fillStyle = color2 + a;
-  pc.beginPath();
-  pc.moveTo(0, 0); pc.lineTo(size, 0); pc.lineTo(0, size);
-  pc.closePath();
-  pc.fill();
+  pc.fillRect(size / 2, 0, size / 2, size);
   return ctx.createPattern(pat, 'repeat');
 }
 
