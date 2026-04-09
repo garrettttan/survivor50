@@ -130,10 +130,8 @@
     /* ── Charts ──────────────────────────────────────────────── */
     .charts-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
     }
-    @media (max-width: 860px) { .charts-grid { grid-template-columns: 1fr; } }
 
     .chart-card {
       background: var(--card-bg);
@@ -346,70 +344,159 @@
       .castaway-chart-wrap { height: 480px; }
     }
 
-    /* ── Castaway Modal ────────────────────────────────────────── */
+    /* ── Castaway Detail (bottom sheet on mobile, modal on desktop) */
     .clickable { cursor: pointer; transition: color 0.15s; }
     .clickable:hover { color: var(--fire); text-decoration: underline; }
 
-    .modal-overlay {
+    .sheet-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.6);
       z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1rem;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
     }
-    .modal-content {
+    .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 1001;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      max-width: 500px; width: 100%;
-      max-height: 85vh; overflow-y: auto;
-      position: relative;
-      padding: 2rem 1.5rem;
+      border-top: 2px solid var(--fire);
+      border-radius: 16px 16px 0 0;
+      max-height: 85vh;
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
     }
-    .modal-close {
-      position: absolute; top: 0.75rem; right: 1rem;
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      display: flex; justify-content: center;
+      padding: 0.75rem 0 0.5rem;
+      background: var(--card-bg);
+      cursor: grab;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+    .sheet-handle::after {
+      content: '';
+      width: 40px; height: 4px;
+      background: var(--card-border);
+      border-radius: 2px;
+    }
+    .sheet-sticky-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      background: var(--card-bg);
+      flex-shrink: 0;
+    }
+    .sheet-sticky-header .sheet-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.2rem; font-weight: 700;
+      color: var(--fire);
+    }
+    .sheet-close {
       background: none; border: none;
       color: var(--muted); font-size: 1.5rem;
       cursor: pointer; line-height: 1;
+      flex-shrink: 0;
+      padding: 0 0 0 0.5rem;
     }
-    .modal-close:hover { color: var(--fire); }
+    .sheet-close:hover { color: var(--fire); }
+    .sheet-scroll {
+      overflow-y: auto;
+      padding: 0 1.5rem 1.5rem;
+      flex: 1;
+      min-height: 0;
+    }
+    .bottom-sheet.dragging { transition: none; }
 
-    .modal-castaway-name {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1.6rem; font-weight: 700;
-      color: var(--fire);
+    /* Desktop: centered modal instead of bottom sheet */
+    @media (min-width: 768px) {
+      .bottom-sheet {
+        bottom: auto; top: 50%; left: 50%; right: auto;
+        transform: translate(-50%, -50%) scale(0.95);
+        opacity: 0;
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
+        border-top: 2px solid var(--fire);
+        max-height: 80vh;
+        width: 500px;
+        margin: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+      }
+      .bottom-sheet.open {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+      .sheet-handle { display: none; }
     }
-    .modal-castaway-meta {
+
+    .sheet-header {
+      margin-bottom: 0.75rem;
+      padding-top: 0.75rem;
+    }
+    .sheet-meta {
       display: flex; align-items: center; gap: 0.5rem;
-      margin-top: 0.4rem; flex-wrap: wrap;
+      margin-top: 0.3rem; flex-wrap: wrap;
     }
-    .modal-pts {
+    .sheet-pts {
       font-family: 'Oswald', sans-serif;
-      font-size: 1.3rem; font-weight: 700;
+      font-size: 1.2rem; font-weight: 700;
     }
-    .modal-owner {
+    .sheet-owner {
       font-size: 0.8rem; color: var(--muted);
     }
 
-    .modal-tribe-section { margin-top: 1.5rem; }
-    .modal-tribe-header {
+    .sheet-section { margin-top: 1.25rem; }
+    .sheet-section-header {
       font-family: 'Oswald', sans-serif;
       font-size: 0.8rem; color: var(--muted);
       text-transform: uppercase; letter-spacing: 1.5px;
       margin-bottom: 0.5rem;
       display: flex; align-items: center; gap: 0.5rem;
     }
-    .modal-tribemate {
+    .sheet-scoring {
+      margin-top: 1rem;
+      background: rgba(61,42,15,0.2);
+      border: 1px solid rgba(61,42,15,0.5);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .sheet-scoring .sheet-section-header {
+      color: var(--fire);
+      margin-bottom: 0.75rem;
+    }
+    .sheet-tribes {
+      margin-top: 1.25rem;
+      border-top: 1px solid rgba(61,42,15,0.5);
+      padding-top: 0.75rem;
+    }
+    .sheet-tribes > .sheet-section-header {
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .sheet-tribes .sheet-section:first-child { margin-top: 0.75rem; }
+    .sheet-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 0.4rem 0;
       border-bottom: 1px solid rgba(61,42,15,0.4);
       font-size: 0.85rem;
     }
-    .modal-tribemate:last-child { border-bottom: none; }
-    .modal-tribemate.out { opacity: 0.38; }
-    .modal-tribemate.out .modal-tribemate-name { text-decoration: line-through; }
-    .modal-tribemate-name { flex: 1; font-weight: 500; }
-    .modal-tribemate-owner { font-size: 0.75rem; }
+    .sheet-row:last-child { border-bottom: none; }
+    .sheet-row.out { opacity: 0.38; }
+    .sheet-row.out .sheet-row-name { text-decoration: line-through; }
+    .sheet-row-name { flex: 1; font-weight: 500; }
 
     /* ── Mobile ──────────────────────────────────────────────── */
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
@@ -445,8 +532,6 @@
       .castaway-row { padding: 0.5rem 1rem; }
       .castaway-name { font-size: 0.82rem; }
 
-      .modal-content { padding: 1.5rem 1rem; }
-      .modal-castaway-name { font-size: 1.3rem; }
     }
 
     /* ── Loading / Error ─────────────────────────────────────── */
@@ -514,7 +599,7 @@
   <section>
     <h2 class="section-title">📈 CHARTS</h2>
     <div class="charts-grid">
-      <div class="chart-card" style="grid-column: 1 / -1">
+      <div class="chart-card">
         <div class="chart-label">Team Cumulative Points</div>
         <div class="team-chart-scroll">
           <div class="team-chart-inner">
@@ -522,7 +607,7 @@
           </div>
         </div>
       </div>
-      <div class="chart-card" style="grid-column: 1 / -1">
+      <div class="chart-card">
         <div class="chart-label">Points by Castaway</div>
         <div class="filter-pills" id="castaway-filters"></div>
         <div class="castaway-chart-wrap">
@@ -549,11 +634,14 @@
 
 </div>
 
-<div id="castaway-modal" class="modal-overlay" style="display:none" onclick="closeCastawayModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeCastawayModal()">&times;</button>
-    <div id="castaway-modal-body"></div>
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="bottom-sheet">
+  <div class="sheet-handle" id="sheet-handle"></div>
+  <div class="sheet-sticky-header">
+    <span class="sheet-name" id="sheet-header-name"></span>
+    <button class="sheet-close" onclick="closeSheet()">&times;</button>
   </div>
+  <div class="sheet-scroll" id="sheet-body"></div>
 </div>
 
 <script>
@@ -580,12 +668,16 @@ const PALETTE = [
   '#94a3b8', // slate (fallback)
 ];
 
+// Google Sheets CSV endpoint
+const SHEET_BASE = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
+
 // Tribe colors — loaded from Config sheet, keyed by "Season|Tribe"
 let tribeColorMap = {};
 // Winner picks — loaded from "Winner picks" sheet, keyed by season title
 let winnerPicks = {};
 // Scoring rules — loaded from "Scoring" sheet
 let scoringRules = [];
+let scoringLookup = {};
 
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -596,13 +688,62 @@ function hexToRgba(hex, alpha) {
 
 function getTribeColor(name) {
   const key = activeSeason ? `${activeSeason.title}|${name}` : name;
-  const hex = tribeColorMap[key] || '#94a3b8';
+  let hex = tribeColorMap[key];
+  // Fallback: match any season with this tribe name
+  if (!hex) hex = Object.entries(tribeColorMap).find(([k]) => k.endsWith(`|${name}`))?.[1];
+  if (!hex) hex = '#94a3b8';
   return { color: hex, bg: hexToRgba(hex, 0.15), border: hexToRgba(hex, 0.35) };
 }
 
 function tribeBadge(name) {
   const t = getTribeColor(name);
   return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border}">${name}</span>`;
+}
+
+// ── Shared Helpers ────────────────────────────────────────────────────────
+function buildTeams(castaways, seasonPicks) {
+  const teamNames = [...new Set(castaways.map(c => c.team).filter(Boolean))].sort();
+  const teamColor = {};
+  teamNames.forEach((t, i) => { teamColor[t] = PALETTE[i % PALETTE.length]; });
+
+  const teams = {};
+  teamNames.forEach(t => {
+    teams[t] = { name: t, totalPoints: 0, castaways: [], activeCount: 0, survivorGuess: null, color: teamColor[t] };
+  });
+  castaways.forEach(c => {
+    if (!teams[c.team]) return;
+    teams[c.team].totalPoints += c.total;
+    teams[c.team].castaways.push(c);
+    if (!c.eliminated) teams[c.team].activeCount++;
+  });
+
+  seasonPicks.forEach(([tName, guess]) => {
+    if (tName && guess && teams[tName]) teams[tName].survivorGuess = guess;
+  });
+
+  return { teamNames, teamColor, teams };
+}
+
+function buildTeamCumulativePoints(teams, teamNames, activeWeeks) {
+  teamNames.forEach(t => {
+    let cum = 0;
+    teams[t].cumulativePoints = activeWeeks.map((w, wi) => {
+      teams[t].castaways.forEach(c => {
+        if (c.weekPoints[wi] !== null) cum += c.weekPoints[wi];
+      });
+      return cum;
+    });
+  });
+}
+
+function buildActiveNames(castaways) {
+  const active = castaways.filter(c => !c.eliminated);
+  return {
+    has(guess) {
+      const g = guess.trim().toLowerCase();
+      return active.some(c => c.name.toLowerCase() === g || c.name.toLowerCase().startsWith(g + ' '));
+    }
+  };
 }
 
 // ── CSV Parsing ────────────────────────────────────────────────────────────
@@ -629,7 +770,7 @@ function parseCSV(text) {
 }
 
 // ── Data Processing ────────────────────────────────────────────────────────
-function processData(mainRows, scoringRows) {
+function processData(mainRows, seasonPicks) {
   const headers = mainRows[0].map(h => h.trim().toLowerCase());
   const col = name => headers.indexOf(name.toLowerCase());
 
@@ -707,46 +848,163 @@ function processData(mainRows, scoringRows) {
     });
   });
 
-  // Build team map
-  const teamNames = [...new Set(castaways.map(c => c.team).filter(Boolean))].sort();
-  const teamColor = {};
-  teamNames.forEach((t, i) => { teamColor[t] = PALETTE[i % PALETTE.length]; });
+  const { teamNames, teamColor, teams } = buildTeams(castaways, seasonPicks);
+  buildTeamCumulativePoints(teams, teamNames, activeWeeks);
+  const activeNames = buildActiveNames(castaways);
 
-  const teams = {};
-  teamNames.forEach(t => {
-    teams[t] = { name: t, totalPoints: 0, castaways: [], activeCount: 0, survivorGuess: null, color: teamColor[t] };
-  });
-  castaways.forEach(c => {
-    if (!teams[c.team]) return;
-    teams[c.team].totalPoints += c.total;
-    teams[c.team].castaways.push(c);
-    if (!c.eliminated) teams[c.team].activeCount++;
-  });
+  return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
+}
 
-  // Team cumulative points over active weeks
-  teamNames.forEach(t => {
-    let cum = 0;
-    teams[t].cumulativePoints = activeWeeks.map(w => {
-      const wi = weekCols.indexOf(w);
-      teams[t].castaways.forEach(c => {
-        if (c.weekPoints[wi] !== null) cum += c.weekPoints[wi];
+// ── Event-Based Data Processing ───────────────────────────────────────────
+function processEventData(rosterRows, eventRows, seasonPicks) {
+  const rHeaders = rosterRows[0].map(h => h.trim().toLowerCase());
+  const rCol = name => rHeaders.indexOf(name.toLowerCase());
+
+  // Parse roster — castawayMap maps name → array of instances (one per team)
+  const castaways = [];
+  const castawayMap = new Map();
+  function addToMap(key, c) {
+    if (!castawayMap.has(key)) castawayMap.set(key, []);
+    castawayMap.get(key).push(c);
+  }
+
+  for (let r = 1; r < rosterRows.length; r++) {
+    const row = rosterRows[r];
+    const name = (row[rCol('contestant')] || '').trim();
+    if (!name) continue;
+
+    const tribes = ['tribe 1', 'tribe 2', 'tribe 3']
+      .map(t => ({ field: t, value: (row[rCol(t)] || '').trim() }))
+      .filter(t => t.value);
+
+    const teamStr = (row[rCol('team')] || '').trim();
+    const teams = teamStr.split(',').map(t => t.trim()).filter(Boolean);
+    if (!teams.length) teams.push('');
+
+    const shared = {
+      advantages: (row[rCol('advantages')] || '').trim(),
+      usedAdvantages: (row[rCol('used advantages')] || '').trim(),
+    };
+
+    for (const team of teams) {
+      const c = {
+        name, team, tribes,
+        eliminated: false,
+        advantages: shared.advantages,
+        usedAdvantages: shared.usedAdvantages,
+        events: [],
+        weekPoints: [],
+        total: 0,
+      };
+      castaways.push(c);
+      addToMap(name.toLowerCase(), c);
+      const firstName = name.split(' ')[0].toLowerCase();
+      if (firstName !== name.toLowerCase()) addToMap(firstName, c);
+    }
+  }
+
+  function lookupCastaways(nameStr) {
+    return castawayMap.get(nameStr.toLowerCase()) || [];
+  }
+
+  // Parse events — separate meta events from scoring events
+  const eHeaders = eventRows[0].map(h => h.trim().toLowerCase());
+  const eCol = name => eHeaders.indexOf(name.toLowerCase());
+
+  const swapWeeks = [];
+  const rawEvents = [];
+
+  for (let r = 1; r < eventRows.length; r++) {
+    const row = eventRows[r];
+    const week = parseInt((row[eCol('week')] || '').trim()) || 0;
+    const contestant = (row[eCol('contestant')] || '').trim();
+    const tribe = (row[eCol('tribe')] || '').trim();
+    const event = (row[eCol('event')] || '').trim();
+    const idol = (row[eCol('idol or advantage')] || '').trim();
+    const otherPlayer = (row[eCol('other player')] || '').trim();
+    const eventLower = event.toLowerCase();
+
+    if (eventLower === 'tribe swap' || eventLower === 'merge') {
+      swapWeeks.push(week);
+      continue;
+    }
+
+    if (eventLower === 'eliminated') {
+      lookupCastaways(contestant).forEach(c => {
+        c.eliminated = true;
+        c.eliminatedWeek = week;
       });
+      continue;
+    }
+
+    rawEvents.push({ week, contestant, tribe, event, idol, otherPlayer });
+  }
+  swapWeeks.sort((a, b) => a - b);
+
+  // Tribe column resolver: count swap/merge events at or before a week
+  function tribeColForWeek(week) {
+    let idx = 0;
+    for (const sw of swapWeeks) {
+      if (week >= sw) idx++;
+      else break;
+    }
+    return Math.min(idx, 2); // max Tribe 3
+  }
+
+  // Expand tribe events to individual contestants (deduplicate by name)
+  const expandedEvents = [];
+  for (const e of rawEvents) {
+    if (e.tribe && !e.contestant) {
+      const tribeIdx = tribeColForWeek(e.week);
+      const tribeField = `tribe ${tribeIdx + 1}`;
+      const seen = new Set();
+      castaways.forEach(c => {
+        if (seen.has(c.name)) return;
+        // Skip contestants eliminated before this week
+        if (c.eliminatedWeek != null && e.week > c.eliminatedWeek) return;
+        if (c.tribes.some(t => t.field === tribeField && t.value.toLowerCase() === e.tribe.toLowerCase())) {
+          seen.add(c.name);
+          expandedEvents.push({ ...e, contestant: c.name });
+        }
+      });
+    } else if (e.contestant) {
+      expandedEvents.push(e);
+    }
+  }
+
+  // Compute points per contestant (assign to all team instances)
+  for (const e of expandedEvents) {
+    const instances = lookupCastaways(e.contestant);
+    if (!instances.length) continue;
+    const pts = scoringLookup[e.event.toLowerCase()] ?? 0;
+    instances.forEach(c => {
+      c.events.push({ week: e.week, event: e.event, points: pts, idol: e.idol, otherPlayer: e.otherPlayer });
+      c.total += pts;
+    });
+  }
+
+  // Build weekPoints arrays and cumulative points
+  const allWeekNums = [...new Set(expandedEvents.map(e => e.week))].sort((a, b) => a - b);
+  const currentWeekNum = allWeekNums.length > 0 ? allWeekNums[allWeekNums.length - 1] : 0;
+  const activeWeeks = allWeekNums.map(num => ({ num }));
+
+  castaways.forEach(c => {
+    c.weekPoints = allWeekNums.map(w => {
+      const weekEvents = c.events.filter(e => e.week === w);
+      if (weekEvents.length === 0) return null;
+      return weekEvents.reduce((sum, e) => sum + e.points, 0);
+    });
+
+    let cum = 0;
+    c.cumulativePoints = allWeekNums.map((w, i) => {
+      if (c.weekPoints[i] !== null) cum += c.weekPoints[i];
       return cum;
     });
   });
 
-  // Apply survivor guesses (pre-filtered [name, pick] pairs)
-  scoringRows.forEach(([tName, guess]) => {
-    if (tName && guess && teams[tName]) teams[tName].survivorGuess = guess;
-  });
-
-  const activeCastaways = castaways.filter(c => !c.eliminated);
-  const activeNames = {
-    has(guess) {
-      const g = guess.trim().toLowerCase();
-      return activeCastaways.some(c => c.name.toLowerCase() === g || c.name.toLowerCase().startsWith(g + ' '));
-    }
-  };
+  const { teamNames, teamColor, teams } = buildTeams(castaways, seasonPicks);
+  buildTeamCumulativePoints(teams, teamNames, activeWeeks);
+  const activeNames = buildActiveNames(castaways);
 
   return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
 }
@@ -874,7 +1132,7 @@ function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
       responsive: true,
       maintainAspectRatio: false,
       onClick: (event, elements) => {
-        if (elements.length > 0) openCastawayModal(unique[elements[0].index].name);
+        if (elements.length > 0) openSheet(unique[elements[0].index].name);
       },
       plugins: {
         legend: { display: false },
@@ -907,7 +1165,7 @@ function renderFilters(data) {
     return `<button class="pill ${t === 'All' ? 'active' : ''}"
       style="border-color:${color};color:${color}"
       data-team="${t}"
-      onclick="setFilter('${t}')">${t}</button>`;
+      onclick="setFilter('${t.replace(/'/g, "\\'")}')">${t}</button>`;
   }).join('');
 }
 
@@ -928,11 +1186,13 @@ function renderRosters({ teams, teamNames, activeNames }) {
       .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
       .map(c => {
         const tribeBadges = c.tribes.map(t => tribeBadge(t.value)).join('');
-        const advBadge = c.advantages ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
+        const advBadges = c.advantages
+          ? c.advantages.split(',').map(a => `<span class="badge badge-adv">${a.trim()}</span>`).join('')
+          : '';
         return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
           <div>
             <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
-            <div class="castaway-sub">${tribeBadges}${advBadge}</div>
+            <div class="castaway-sub">${tribeBadges}${advBadges}</div>
           </div>
           <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
         </div>`;
@@ -994,21 +1254,24 @@ function switchTab(tab) {
     el.classList.toggle('active', el.dataset.tab === tab);
   });
   toggleSidebar();
+  localStorage.setItem('activeTab', tab);
   if (tab !== 'scoring') loadSeason(CONFIG.SEASONS.find(s => s.title === tab));
 }
 
 function renderSidebar() {
-  document.getElementById('sidebar-seasons').innerHTML = CONFIG.SEASONS.map((s, i) =>
-    `<div class="sidebar-item ${i === 0 ? 'active' : ''}" data-tab="${s.title}" onclick="switchTab('${s.title}')">${s.title}</div>`
-  ).join('');
+  const savedTab = localStorage.getItem('activeTab');
+  const activeTab = savedTab || CONFIG.SEASONS[0].title;
+  document.getElementById('sidebar-seasons').innerHTML = CONFIG.SEASONS.map(s => {
+    const escaped = s.title.replace(/'/g, "\\'");
+    return `<div class="sidebar-item ${s.title === activeTab ? 'active' : ''}" data-tab="${s.title}" onclick="switchTab('${escaped}')">${s.title}</div>`;
+  }).join('');
 }
 
-// ── Castaway Modal ─────────────────────────────────────────────────────────
-function openCastawayModal(name) {
+// ── Castaway Detail (bottom sheet / modal) ───────────────────────────────
+function openSheet(name) {
   const c = appData.castaways.find(x => x.name === name);
   if (!c) return;
 
-  // Collect all fantasy teams that drafted this castaway
   const allEntries = appData.castaways.filter(x => x.name === name);
   const draftedBy = [...new Set(allEntries.map(x => x.team))];
   const ownerColor = appData.teamColor[c.team] || '#94a3b8';
@@ -1017,65 +1280,123 @@ function openCastawayModal(name) {
     ? '<span style="color:var(--ember);font-size:0.8rem">☠️ Eliminated</span>'
     : '<span class="active-badge">Active</span>';
 
-  const advHtml = c.advantages
-    ? `<span class="badge badge-adv">${c.advantages}</span>` : '';
+  const advParts = [];
+  if (c.advantages) c.advantages.split(',').forEach(a => advParts.push(`<span class="badge badge-adv">${a.trim()}</span>`));
+  if (c.usedAdvantages) c.usedAdvantages.split(',').forEach(a => advParts.push(`<span class="badge badge-adv" style="opacity:0.5;text-decoration:line-through">${a.trim()}</span>`));
+  const advHtml = advParts.join(' ');
 
   function tribemateRows(tribeName, tribeField) {
     const all = appData.castaways.filter(x => x.tribes.some(t => t.field === tribeField && t.value === tribeName) && x.name !== name);
-    // Deduplicate by name, collecting all fantasy teams
     const byName = new Map();
-    all.forEach(m => {
-      if (!byName.has(m.name)) {
-        byName.set(m.name, { ...m, teams: [m.team] });
-      } else {
-        const entry = byName.get(m.name);
-        if (!entry.teams.includes(m.team)) entry.teams.push(m.team);
-      }
-    });
+    all.forEach(m => { if (!byName.has(m.name)) byName.set(m.name, m); });
     const mates = [...byName.values()].sort((a, b) => a.eliminated - b.eliminated || b.total - a.total);
     if (!mates.length) return '<div style="font-size:0.8rem;color:var(--muted)">No tribemates found</div>';
-    return mates.map(m => {
-      const ownerLabels = m.teams.map(t => {
-        const c = appData.teamColor[t] || '#94a3b8';
-        return `<span style="color:${c}">${t}</span>`;
-      }).join(', ');
-      return `<div class="modal-tribemate ${m.eliminated ? 'out' : ''}">
-        <span class="modal-tribemate-name clickable" data-castaway="${m.name.replace(/"/g, '&quot;')}">${m.name}</span>
-        <span class="modal-tribemate-owner">${ownerLabels}</span>
-      </div>`;
-    }).join('');
+    return mates.map(m => `<div class="sheet-row ${m.eliminated ? 'out' : ''}">
+        <span class="sheet-row-name clickable" data-castaway="${m.name.replace(/"/g, '&quot;')}">${m.name}</span>
+      </div>`).join('');
   }
 
   const tribeLabels = ['Tribe 1', 'Tribe 2', 'Tribe 3'];
-  const tribesHtml = c.tribes.map((t, i) => `<div class="modal-tribe-section">
-      <div class="modal-tribe-header">${tribeLabels[i] || t.field} ${tribeBadge(t.value)}</div>
+  const tribesHtml = c.tribes.map((t, i) => `<div class="sheet-section">
+      <div class="sheet-section-header">${tribeLabels[i] || t.field} ${tribeBadge(t.value)}</div>
       ${tribemateRows(t.value, t.field)}
     </div>`).join('');
 
-  document.getElementById('castaway-modal-body').innerHTML = `
-    <div class="modal-castaway-name">${c.name}</div>
-    <div class="modal-castaway-meta">
-      <span class="modal-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
-      ${statusBadge} ${advHtml}
+  let eventsHtml = '';
+  if (c.events && c.events.length) {
+    const byWeek = new Map();
+    c.events.forEach(e => {
+      if (!byWeek.has(e.week)) byWeek.set(e.week, []);
+      byWeek.get(e.week).push(e);
+    });
+    const weekEntries = [...byWeek.entries()].sort((a, b) => a[0] - b[0]);
+    eventsHtml = `<div class="sheet-scoring">
+      <div class="sheet-section-header">Scoring Breakdown</div>
+      ${weekEntries.map(([week, events]) => `
+        <div style="margin-bottom:0.5rem">
+          <div style="font-size:0.7rem;color:var(--muted);letter-spacing:1px;font-family:Oswald;margin-bottom:0.2rem">WEEK ${week}</div>
+          ${events.map(e => `<div class="sheet-row">
+            <span class="sheet-row-name">${e.event}${e.idol ? ` <span style="color:var(--muted)">(${e.idol})</span>` : ''}${e.otherPlayer ? ` <span style="color:var(--muted)">— ${e.otherPlayer}</span>` : ''}</span>
+            <span style="color:var(--fire);font-weight:600">${e.points > 0 ? '+' : ''}${fmt(e.points)}</span>
+          </div>`).join('')}
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  document.getElementById('sheet-header-name').textContent = c.name;
+  document.getElementById('sheet-body').innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-meta">
+        <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
+        ${statusBadge} ${advHtml}
+      </div>
+      <div class="sheet-owner">Drafted by ${draftedByHtml}</div>
     </div>
-    <div class="modal-owner">Drafted by ${draftedByHtml}</div>
-    ${tribesHtml}
+    ${eventsHtml}
+    <div class="sheet-tribes">
+      <div class="sheet-section-header">Past Tribes</div>
+      ${tribesHtml}
+    </div>
   `;
 
-  document.getElementById('castaway-modal').style.display = 'flex';
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('bottom-sheet').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeCastawayModal(event) {
-  if (event && event.target !== event.currentTarget) return;
-  document.getElementById('castaway-modal').style.display = 'none';
+function closeSheet() {
+  const sheet = document.getElementById('bottom-sheet');
+  sheet.classList.remove('dragging');
+  sheet.style.transform = '';
+  document.getElementById('sheet-overlay').classList.remove('open');
+  sheet.classList.remove('open');
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCastawayModal(); });
+// Drag-to-dismiss
+{
+  const handle = document.getElementById('sheet-handle');
+  const sheet = document.getElementById('bottom-sheet');
+  let startY = 0, currentY = 0, dragging = false;
+
+  function isDesktop() { return window.matchMedia('(min-width: 768px)').matches; }
+  function onStart(y) {
+    if (isDesktop()) return;
+    dragging = true;
+    startY = y;
+    currentY = 0;
+    sheet.classList.add('dragging');
+  }
+  function onMove(y) {
+    if (!dragging) return;
+    currentY = Math.max(0, y - startY);
+    sheet.style.transform = `translateY(${currentY}px)`;
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.classList.remove('dragging');
+    if (currentY > 100) {
+      closeSheet();
+    } else {
+      sheet.style.transform = '';
+    }
+  }
+
+  handle.addEventListener('mousedown', e => { onStart(e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', e => onMove(e.clientY));
+  document.addEventListener('mouseup', onEnd);
+
+  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
+  document.addEventListener('touchmove', e => onMove(e.touches[0].clientY), { passive: true });
+  document.addEventListener('touchend', onEnd);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-castaway]');
-  if (el) openCastawayModal(el.dataset.castaway);
+  if (el) openSheet(el.dataset.castaway);
 });
 
 // ── Load Season ───────────────────────────────────────────────────────────
@@ -1086,16 +1407,22 @@ async function loadSeason(season) {
   document.getElementById('page-title').textContent = `🔥 ${season.title.toUpperCase()} 🔥`;
   document.title = season.title;
 
-  const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-
   try {
-    const mainRes = await fetch(base + encodeURIComponent(season.mainSheet));
-    if (!mainRes.ok) throw new Error(`HTTP ${mainRes.status} — check that the sheet is publicly shared.`);
+    const fetches = [fetch(SHEET_BASE + encodeURIComponent(season.mainSheet))];
+    if (season.scoringSheet) fetches.push(fetch(SHEET_BASE + encodeURIComponent(season.scoringSheet)));
+    const responses = await Promise.all(fetches);
 
-    const mainText = await mainRes.text();
+    if (!responses[0].ok) throw new Error(`HTTP ${responses[0].status} — check that the sheet is publicly shared.`);
+    const mainText = await responses[0].text();
     const seasonPicks = (winnerPicks[season.title] || []).map(p => [p.name, p.pick]);
 
-    appData = processData(parseCSV(mainText), seasonPicks);
+    if (season.scoringSheet) {
+      if (!responses[1].ok) throw new Error(`HTTP ${responses[1].status} — scoring sheet not found.`);
+      const eventText = await responses[1].text();
+      appData = processEventData(parseCSV(mainText), parseCSV(eventText), seasonPicks);
+    } else {
+      appData = processData(parseCSV(mainText), seasonPicks);
+    }
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -1119,13 +1446,11 @@ async function loadSeason(season) {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main() {
-  const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
-
   // Fetch Config, Winner picks, and Scoring sheets in parallel at startup
   const [configRes, picksRes, scoringRes] = await Promise.all([
-    fetch(base + encodeURIComponent('Config')).catch(() => null),
-    fetch(base + encodeURIComponent('Winner picks')).catch(() => null),
-    fetch(base + encodeURIComponent('Scoring')).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent('Config')).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent('Winner picks')).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent('Scoring')).catch(() => null),
   ]);
 
   // Parse tribe colors from Config sheet
@@ -1166,14 +1491,27 @@ async function main() {
         const category = (rows[r][0] || '').trim();
         const event    = (rows[r][1] || '').trim();
         const points   = (rows[r][2] || '').trim();
-        if (category && event) scoringRules.push({ category, event, points });
+        if (event) scoringLookup[event.toLowerCase().trim()] = parseFloat(points) || 0;
+        if (category && event && points !== '0') scoringRules.push({ category, event, points });
       }
       renderScoring();
     }
   } catch (_) {}
 
   renderSidebar();
-  loadSeason(CONFIG.SEASONS[0]);
+  const savedTab = localStorage.getItem('activeTab');
+  if (savedTab === 'scoring') {
+    document.getElementById('tab-season').style.display = 'none';
+    document.getElementById('tab-scoring').style.display = '';
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.tab === 'scoring');
+    });
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } else {
+    const savedSeason = savedTab && CONFIG.SEASONS.find(s => s.title === savedTab);
+    loadSeason(savedSeason || CONFIG.SEASONS[0]);
+  }
 }
 
 main();
