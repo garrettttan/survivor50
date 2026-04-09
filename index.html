@@ -543,34 +543,7 @@
 <main id="tab-scoring" style="display:none">
   <section>
     <h2 class="section-title">📋 HOW SCORING WORKS</h2>
-    <div class="scoring-grid">
-      <div class="scoring-cat">
-        <h4>Individual Challenges</h4>
-        <div class="scoring-row"><span>Win immunity challenge</span><span class="scoring-pts">4</span></div>
-        <div class="scoring-row"><span>2nd in immunity (2 winners)</span><span class="scoring-pts">2</span></div>
-        <div class="scoring-row"><span>Win reward challenge</span><span class="scoring-pts">2</span></div>
-        <div class="scoring-row"><span>Brought on a reward</span><span class="scoring-pts">1</span></div>
-      </div>
-      <div class="scoring-cat">
-        <h4>Team Challenges</h4>
-        <div class="scoring-row"><span>Win team immunity</span><span class="scoring-pts">2</span></div>
-        <div class="scoring-row"><span>2nd in team immunity</span><span class="scoring-pts">1</span></div>
-        <div class="scoring-row"><span>Win team reward</span><span class="scoring-pts">1</span></div>
-        <div class="scoring-row"><span>2nd in team reward</span><span class="scoring-pts">0.5</span></div>
-      </div>
-      <div class="scoring-cat">
-        <h4>Idols &amp; Advantages</h4>
-        <div class="scoring-row"><span>Find idol or clue</span><span class="scoring-pts">1</span></div>
-        <div class="scoring-row"><span>Play idol (self or others)</span><span class="scoring-pts">2</span></div>
-        <div class="scoring-row"><span>Gain an advantage</span><span class="scoring-pts">1</span></div>
-      </div>
-      <div class="scoring-cat">
-        <h4>Bonus Points</h4>
-        <div class="scoring-row"><span>Make the merge</span><span class="scoring-pts">1</span></div>
-        <div class="scoring-row"><span>FTC vote (per vote received)</span><span class="scoring-pts">1</span></div>
-        <div class="scoring-row"><span>Correct sole survivor pick</span><span class="scoring-pts">15</span></div>
-      </div>
-    </div>
+    <div class="scoring-grid" id="scoring-grid"></div>
   </section>
 </main>
 
@@ -611,6 +584,8 @@ const PALETTE = [
 let tribeColorMap = {};
 // Winner picks — loaded from "Winner picks" sheet, keyed by season title
 let winnerPicks = {};
+// Scoring rules — loaded from "Scoring" sheet
+let scoringRules = [];
 
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -985,6 +960,27 @@ function renderRosters({ teams, teamNames, activeNames }) {
   }).join('');
 }
 
+// ── Render: Scoring ───────────────────────────────────────────────────────
+function renderScoring() {
+  // Group rules by category, preserving order
+  const categories = [];
+  const catMap = {};
+  scoringRules.forEach(r => {
+    if (!catMap[r.category]) {
+      catMap[r.category] = [];
+      categories.push(r.category);
+    }
+    catMap[r.category].push(r);
+  });
+
+  document.getElementById('scoring-grid').innerHTML = categories.map(cat => `
+    <div class="scoring-cat">
+      <h4>${cat}</h4>
+      ${catMap[cat].map(r => `<div class="scoring-row"><span>${r.event}</span><span class="scoring-pts">${r.points}</span></div>`).join('')}
+    </div>
+  `).join('');
+}
+
 // ── Sidebar & Tabs ────────────────────────────────────────────────────────
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -1125,10 +1121,11 @@ async function loadSeason(season) {
 async function main() {
   const base = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
 
-  // Fetch Config and Winner picks sheets in parallel at startup
-  const [configRes, picksRes] = await Promise.all([
+  // Fetch Config, Winner picks, and Scoring sheets in parallel at startup
+  const [configRes, picksRes, scoringRes] = await Promise.all([
     fetch(base + encodeURIComponent('Config')).catch(() => null),
     fetch(base + encodeURIComponent('Winner picks')).catch(() => null),
+    fetch(base + encodeURIComponent('Scoring')).catch(() => null),
   ]);
 
   // Parse tribe colors from Config sheet
@@ -1158,6 +1155,20 @@ async function main() {
           winnerPicks[seasonKey].push({ name, pick });
         }
       }
+    }
+  } catch (_) {}
+
+  // Parse scoring rules from Scoring sheet (columns: Category, Event, Points)
+  try {
+    if (scoringRes && scoringRes.ok) {
+      const rows = parseCSV(await scoringRes.text());
+      for (let r = 1; r < rows.length; r++) {
+        const category = (rows[r][0] || '').trim();
+        const event    = (rows[r][1] || '').trim();
+        const points   = (rows[r][2] || '').trim();
+        if (category && event) scoringRules.push({ category, event, points });
+      }
+      renderScoring();
     }
   } catch (_) {}
 
