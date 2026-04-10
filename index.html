@@ -144,6 +144,82 @@
       text-transform: uppercase;
       margin-bottom: 1rem;
     }
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Toggle switch */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      transition: color 0.15s;
+    }
+    .toggle-wrap.on .toggle-label { color: var(--active); }
+    .toggle-track {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: #2d1810;
+      border: 1px solid var(--card-border);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-wrap.on .toggle-track {
+      background: rgba(34,197,94,0.25);
+      border-color: var(--active);
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-wrap.on .toggle-thumb {
+      transform: translateX(16px);
+      background: var(--active);
+    }
+
+    /* Sort dropdown */
+    .sort-select {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      background: #2d1810;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.35rem 1.8rem 0.35rem 0.6rem;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8995c'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .sort-select:hover, .sort-select:focus {
+      border-color: var(--fire);
+      color: var(--text);
+      outline: none;
+    }
+
     .filter-pills {
       display: flex;
       flex-wrap: wrap;
@@ -603,11 +679,12 @@
       </div>
       <div class="chart-card">
         <div class="chart-label">Points by Castaway</div>
-        <div class="filter-pills" id="castaway-filters"></div>
+        <div class="chart-controls" id="castaway-filters"></div>
         <div class="castaway-chart-wrap">
           <canvas id="castaway-chart"></canvas>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -830,6 +907,7 @@ function processData(mainRows, seasonPicks) {
       // Infer: eliminated if last non-null week < current week
       const lastData = c.weekPoints.reduce((last, v, i) => v !== null ? i : last, -1);
       c.eliminated = lastData >= 0 && lastData < currentWeekIdx;
+      if (c.eliminated) c.eliminatedWeek = weekCols[lastData].num;
     } else {
       c.eliminated = false;
     }
@@ -1090,8 +1168,12 @@ function stripePattern(ctx, color1, color2, eliminated) {
   return ctx.createPattern(pat, 'repeat');
 }
 
-function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
-  const subset = filterTeam === 'All' ? castaways : castaways.filter(c => c.team === filterTeam);
+let castawayActiveOnly = false;
+let castawaySortMode = 'points'; // 'points' or 'elimination'
+
+function renderCastawayChart({ castaways, teamColor }) {
+  let subset = castaways;
+  if (castawayActiveOnly) subset = subset.filter(c => !c.eliminated);
 
   // Group by castaway name, collecting every team they appear on
   const byName = new Map();
@@ -1104,9 +1186,24 @@ function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
     }
   });
 
-  const unique  = [...byName.values()].sort((a, b) => b.total - a.total);
+  let unique = [...byName.values()];
+  if (castawaySortMode === 'elimination') {
+    // Active castaways first (no eliminatedWeek), then eliminated in reverse order (last out first)
+    unique.sort((a, b) => {
+      const aElim = a.eliminated ? (a.eliminatedWeek ?? 999) : 9999;
+      const bElim = b.eliminated ? (b.eliminatedWeek ?? 999) : 9999;
+      return bElim - aElim || b.total - a.total;
+    });
+  } else {
+    unique.sort((a, b) => b.total - a.total);
+  }
+
   const labels  = unique.map(c => c.name);
   const data    = unique.map(c => c.total);
+
+  // Adjust chart height based on number of bars
+  const wrap = document.querySelector('.castaway-chart-wrap');
+  wrap.style.height = Math.max(unique.length * 26, 200) + 'px';
 
   const ctx = document.getElementById('castaway-chart').getContext('2d');
   if (castawayChartInst) castawayChartInst.destroy();
@@ -1156,20 +1253,28 @@ function renderCastawayChart({ castaways, teamColor }, filterTeam = 'All') {
 
 // ── Render: Filter Pills ───────────────────────────────────────────────────
 function renderFilters(data) {
-  const { teamNames, teamColor } = data;
   const container = document.getElementById('castaway-filters');
-  container.innerHTML = ['All', ...teamNames].map(t => {
-    const color = t === 'All' ? '#a8995c' : teamColor[t];
-    return `<button class="pill ${t === 'All' ? 'active' : ''}"
-      style="border-color:${color};color:${color}"
-      data-team="${t}"
-      onclick="setFilter('${t.replace(/'/g, "\\'")}')">${t}</button>`;
-  }).join('');
+  container.innerHTML = `
+    <div class="toggle-wrap ${castawayActiveOnly ? 'on' : ''}" onclick="toggleActiveOnly()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">Active only</span>
+    </div>
+    <select class="sort-select" onchange="setCastawaySort(this.value)">
+      <option value="points" ${castawaySortMode === 'points' ? 'selected' : ''}>Sort by points</option>
+      <option value="elimination" ${castawaySortMode === 'elimination' ? 'selected' : ''}>Sort by elimination</option>
+    </select>`;
 }
 
-function setFilter(team) {
-  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.team === team));
-  renderCastawayChart(appData, team);
+function toggleActiveOnly() {
+  castawayActiveOnly = !castawayActiveOnly;
+  renderFilters(appData);
+  renderCastawayChart(appData);
+}
+
+function setCastawaySort(mode) {
+  castawaySortMode = mode;
+  renderFilters(appData);
+  renderCastawayChart(appData);
 }
 
 // ── Render: Roster Cards ───────────────────────────────────────────────────
