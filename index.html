@@ -1004,7 +1004,7 @@ function processEventData(rosterRows, eventRows, seasonPicks) {
       continue;
     }
 
-    if (eventLower === 'eliminated') {
+    if (eventLower === 'eliminated' || eventLower === 'medivacked') {
       lookupCastaways(contestant).forEach(c => {
         c.eliminated = true;
         c.eliminatedWeek = week;
