@@ -923,7 +923,7 @@ function processEventData(rosterRows, eventRows, teamPicks) {
 
     if (eventLower === 'tribe swap' || eventLower === 'merge') continue;
 
-    if (eventLower === 'eliminated' || eventLower === 'medivacked') {
+    if (eventLower === 'voted out' || eventLower === 'medivacked') {
       lookupCastaways(contestant).forEach(c => {
         c.eliminated = true;
         c.eliminatedWeek = week;
