@@ -297,6 +297,7 @@
     .castaway-row.out .castaway-name { text-decoration: line-through; }
 
     .castaway-name { font-size: 0.875rem; font-weight: 500; }
+    .castaway-sub  { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.3rem; }
 
     .badge {
       display: inline-block;
@@ -351,13 +352,6 @@
       height: 350px;
     }
 
-    .castaway-chart-wrap {
-      position: relative;
-      height: 580px; /* enough for 24 bars */
-    }
-    @media (max-width: 640px) {
-      .castaway-chart-wrap { height: 480px; }
-    }
 
     /* ── Castaway Detail (bottom sheet on mobile, modal on desktop) */
     .clickable { cursor: pointer; transition: color 0.15s; }
@@ -594,14 +588,15 @@
           </div>
         </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-label">Points by Castaway</div>
-        <div class="chart-controls" id="castaway-filters"></div>
-        <div class="castaway-chart-wrap">
-          <canvas id="castaway-chart"></canvas>
-        </div>
-      </div>
+    </div>
+  </section>
 
+  <!-- CASTAWAYS -->
+  <section>
+    <h2 class="section-title">🌴 CASTAWAYS</h2>
+    <div class="chart-card">
+      <div class="chart-controls" id="castaway-filters"></div>
+      <div class="castaway-list" id="castaway-list"></div>
     </div>
   </section>
 
@@ -630,7 +625,6 @@
 // ── State ─────────────────────────────────────────────────────────────────
 let appData = null;
 let teamChartInst = null;
-let castawayChartInst = null;
 
 function fmt(n) {
   const s = n.toFixed(1);
@@ -937,25 +931,11 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
   teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: opts });
 }
 
-// ── Render: Castaway Chart ─────────────────────────────────────────────────
-function stripePattern(ctx, color1, color2, eliminated) {
-  const a = eliminated ? '44' : 'cc';
-  const size = 16;
-  const pat = document.createElement('canvas');
-  pat.width = size; pat.height = size;
-  const pc = pat.getContext('2d');
-  // Vertical stripes — each color gets half the tile
-  pc.fillStyle = color1 + a;
-  pc.fillRect(0, 0, size / 2, size);
-  pc.fillStyle = color2 + a;
-  pc.fillRect(size / 2, 0, size / 2, size);
-  return ctx.createPattern(pat, 'repeat');
-}
-
+// ── Render: Castaway List ────────────────────────────────────────────────
 let castawayActiveOnly = false;
 let castawaySortMode = 'points'; // 'points' or 'elimination'
 
-function renderCastawayChart({ castaways, teamColor }) {
+function renderCastawayList({ castaways, teamColor }) {
   let subset = castaways;
   if (castawayActiveOnly) subset = subset.filter(c => !c.eliminated);
 
@@ -982,57 +962,22 @@ function renderCastawayChart({ castaways, teamColor }) {
     unique.sort((a, b) => b.total - a.total);
   }
 
-  const labels  = unique.map(c => c.name);
-  const data    = unique.map(c => c.total);
-
-  // Adjust chart height based on number of bars
-  const wrap = document.querySelector('.castaway-chart-wrap');
-  wrap.style.height = Math.max(unique.length * 26, 200) + 'px';
-
-  const ctx = document.getElementById('castaway-chart').getContext('2d');
-  if (castawayChartInst) castawayChartInst.destroy();
-
-  const bgColors = unique.map(c => {
-    const elim = c.eliminated;
-    if (c.teams.length === 1) return teamColor[c.teams[0]] + (elim ? '44' : 'cc');
-    return stripePattern(ctx, teamColor[c.teams[0]], teamColor[c.teams[1]], elim);
-  });
-  const borders = unique.map(c => teamColor[c.teams[0]]);
-
-  castawayChartInst = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data, backgroundColor: bgColors, borderColor: borders, borderWidth: 1, borderRadius: 3 }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      onClick: (event, elements) => {
-        if (elements.length > 0) openSheet(unique[elements[0].index].name);
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1c1209',
-          borderColor: '#3d2a0f',
-          borderWidth: 1,
-          titleColor: '#fef3c7',
-          bodyColor: '#a8995c',
-          callbacks: {
-            label: ctx => ` ${ctx.parsed.x} pts — ${unique[ctx.dataIndex].teams.join(' + ')}`,
-            afterLabel: ctx => unique[ctx.dataIndex].eliminated ? '  ☠️ eliminated' : '',
-          },
-        },
-      },
-      scales: {
-        x: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
-        y: { ticks: { color: '#fef3c7', font: { family: 'Open Sans', size: 10 } }, grid: { color: '#3d2a0f' } },
-      },
-    },
-  });
-
+  document.getElementById('castaway-list').innerHTML = unique.map(c => {
+    const currentTribe = c.tribes.length ? c.tribes[c.tribes.length - 1].value : '';
+    const advBadges = c.advantages
+      ? c.advantages.split(',').map(a => `<span class="badge badge-adv">${a.trim()}</span>`).join('')
+      : '';
+    const subHtml = currentTribe || advBadges
+      ? `<div class="castaway-sub">${currentTribe ? tribeBadge(currentTribe) : ''}${advBadges}</div>`
+      : '';
+    return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
+      <div>
+        <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
+        ${subHtml}
+      </div>
+      <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : teamColor[c.teams[0]]}">${fmt(c.total)}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── Render: Filter Pills ───────────────────────────────────────────────────
@@ -1052,13 +997,13 @@ function renderFilters(data) {
 function toggleActiveOnly() {
   castawayActiveOnly = !castawayActiveOnly;
   renderFilters(appData);
-  renderCastawayChart(appData);
+  renderCastawayList(appData);
 }
 
 function setCastawaySort(mode) {
   castawaySortMode = mode;
   renderFilters(appData);
-  renderCastawayChart(appData);
+  renderCastawayList(appData);
 }
 
 // ── Render: Roster Cards ───────────────────────────────────────────────────
@@ -1309,7 +1254,7 @@ async function main() {
     renderStandings(appData);
     renderTeamChart(appData);
     renderFilters(appData);
-    renderCastawayChart(appData);
+    renderCastawayList(appData);
     renderRosters(appData);
 
   } catch (err) {
