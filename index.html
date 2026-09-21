@@ -592,7 +592,6 @@
           <th>Rank</th>
           <th>Player</th>
           <th>Points</th>
-          <th>Active</th>
         </tr>
       </thead>
       <tbody id="standings-body"></tbody>
@@ -931,7 +930,6 @@ function renderStandings({ teams, teamNames }) {
       <td><span class="rank-num" style="color:${rank === 1 ? 'var(--fire)' : 'var(--muted)'}">${rank === 1 ? '🔥' : rank}</span></td>
       <td><span class="color-dot" style="background:${tm.color}"></span><span class="player-name">${t}</span></td>
       <td><span class="points-cell" style="color:${tm.color}">${fmt(tm.totalPoints)}</span></td>
-      <td><span class="active-badge">${tm.activeCount} active</span></td>
     </tr>`;
   }).join('');
 }
