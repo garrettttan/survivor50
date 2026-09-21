@@ -298,7 +298,6 @@
     .castaway-row.out .castaway-name { text-decoration: line-through; }
 
     .castaway-name { font-size: 0.875rem; font-weight: 500; }
-    .castaway-sub  { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.2rem; }
 
     .badge {
       display: inline-block;
@@ -1094,14 +1093,8 @@ function renderRosters({ teams, teamNames, activeNames }) {
     const castawayRows = [...tm.castaways]
       .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
       .map(c => {
-        const advBadges = c.advantages
-          ? c.advantages.split(',').map(a => `<span class="badge badge-adv">${a.trim()}</span>`).join('')
-          : '';
         return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
-          <div>
-            <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
-            ${advBadges ? `<div class="castaway-sub">${advBadges}</div>` : ''}
-          </div>
+          <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
           <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
         </div>`;
       }).join('');
