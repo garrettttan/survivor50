@@ -409,7 +409,7 @@
     }
     .sheet-scroll {
       overflow-y: auto;
-      padding: 0 1.5rem 1.5rem;
+      padding: 1.75rem 1.5rem 1.5rem;
       flex: 1;
       min-height: 0;
     }
@@ -438,26 +438,11 @@
       .sheet-handle { display: none; }
     }
 
-    .sheet-hero {
-      aspect-ratio: 1;
-      background-size: cover;
-      background-position: center;
-      background-color: #1a0800;
-      position: relative;
-      margin: -1.5rem -1.5rem 0;
-      width: calc(100% + 3rem);
-    }
-    .sheet-hero-overlay {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 1.25rem 1.5rem 0.75rem;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
-    }
     .sheet-hero-name {
       font-family: 'Oswald', sans-serif;
       font-size: 1.4rem;
       font-weight: 700;
-      color: #fef3c7;
+      color: var(--text);
     }
     .sheet-meta {
       display: flex; align-items: center; gap: 0.5rem;
@@ -651,11 +636,6 @@ let castawayChartInst = null;
 function fmt(n) {
   const s = n.toFixed(1);
   return s.endsWith('.0') ? s.slice(0, -2) : s;
-}
-
-function castawayPhoto(name) {
-  const clean = name.replace(/"[^"]*"\s*/g, '').replace(/\s+/g, ' ').trim();
-  return 'images/castaways/' + clean.replace(/ /g, '_') + '.png';
 }
 
 function handleLogoError(img) {
@@ -1200,14 +1180,10 @@ function openSheet(name) {
   }
 
   document.getElementById('sheet-body').innerHTML = `
-    <div class="sheet-hero" style="background-image:url('${castawayPhoto(c.name)}')">
-      <div class="sheet-hero-overlay">
-        <div class="sheet-hero-name">${c.name}</div>
-        <div class="sheet-meta">
-          <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
-          ${statusBadge} ${advHtml}
-        </div>
-      </div>
+    <div class="sheet-hero-name">${c.name}</div>
+    <div class="sheet-meta">
+      <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
+      ${statusBadge} ${advHtml}
     </div>
     <div class="sheet-owner">Drafted by ${draftedByHtml}</div>
     ${eventsHtml}
