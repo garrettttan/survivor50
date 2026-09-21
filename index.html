@@ -281,7 +281,6 @@
       font-weight: 700;
       line-height: 1;
     }
-    .roster-pts-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
     .roster-guess { font-size: 0.8rem; color: var(--muted); text-align: right; }
     .roster-guess .name { font-weight: 600; display: block; }
 
@@ -1089,10 +1088,7 @@ function renderRosters({ teams, teamNames, activeNames }) {
       <div class="roster-header">
         <div class="roster-player" style="color:${tm.color}">${t}</div>
         <div class="roster-meta">
-          <div>
-            <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
-            <div class="roster-pts-label">pts · ${tm.activeCount} active</div>
-          </div>
+          <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
           ${guessSection}
         </div>
       </div>
