@@ -126,7 +126,6 @@
       font-size: 0.75rem;
       padding: 0.15rem 0.6rem;
     }
-    .guess-cell { font-size: 0.85rem; color: var(--muted); }
     .guess-alive { color: var(--active); font-weight: 600; }
     .guess-out   { text-decoration: line-through; opacity: 0.6; }
 
@@ -527,9 +526,6 @@
       section { margin-bottom: 2rem; }
       .section-title { font-size: 1.1rem; margin-bottom: 1rem; }
 
-      /* Hide Survivor Pick column — visible in roster cards below */
-      .standings-table th:nth-child(5),
-      .standings-table td:nth-child(5) { display: none; }
       .standings-table th,
       .standings-table td { padding: 0.6rem 0.75rem; }
       .points-cell { font-size: 1.1rem; }
@@ -597,7 +593,6 @@
           <th>Player</th>
           <th>Points</th>
           <th>Active</th>
-          <th>Survivor Pick</th>
         </tr>
       </thead>
       <tbody id="standings-body"></tbody>
@@ -927,22 +922,16 @@ function baseChartOptions() {
 }
 
 // ── Render: Standings ──────────────────────────────────────────────────────
-function renderStandings({ teams, teamNames, activeNames }) {
+function renderStandings({ teams, teamNames }) {
   const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
   document.getElementById('standings-body').innerHTML = sorted.map((t, i) => {
     const tm = teams[t];
     const rank = i + 1;
-    const guess = tm.survivorGuess;
-    const guessAlive = guess && activeNames.has(guess);
-    const guessHtml = guess
-      ? `<span class="${guessAlive ? 'guess-alive' : 'guess-out'}">${guess}</span> ${guessAlive ? '🟢' : '☠️'}`
-      : '—';
     return `<tr>
       <td><span class="rank-num" style="color:${rank === 1 ? 'var(--fire)' : 'var(--muted)'}">${rank === 1 ? '🔥' : rank}</span></td>
       <td><span class="color-dot" style="background:${tm.color}"></span><span class="player-name">${t}</span></td>
       <td><span class="points-cell" style="color:${tm.color}">${fmt(tm.totalPoints)}</span></td>
       <td><span class="active-badge">${tm.activeCount} active</span></td>
-      <td class="guess-cell">${guessHtml}</td>
     </tr>`;
   }).join('');
 }
