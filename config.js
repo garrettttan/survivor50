@@ -1,9 +1,12 @@
 const CONFIG = {
-  SHEET_ID: "1PkLIIdK8ky24acRPV2rVqx7MHruTMMD0mw_U5gokl6M",
+  SHEET_ID: "12LsNy3GFNLaFjuXT06mzvGSxUoMpk8xdupDtpr9Hcxg",
+  SEASON_TITLE: "Season 51",
+  LOGO: "images/logos/51.png",
 
-  SEASONS: [
-    { title: "Season 50", mainSheet: "Season 50", scoringSheet: "Season 50 Scoring" },
-    { title: "Season 49", mainSheet: "Season 49" },
-    { title: "Season 48", mainSheet: "Season 48" },
-  ],
+  SHEETS: {
+    teams: "Teams",
+    contestants: "Contestants",
+    events: "Events",
+    scoring: "Scoring",
+  },
 };

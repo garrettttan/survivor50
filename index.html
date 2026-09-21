@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Survivor 50</title>
+  <title>Survivor 51</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -40,6 +40,14 @@
     .header-logo {
       max-height: 120px;
       width: auto;
+    }
+    .header-logo-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--fire);
+      text-transform: uppercase;
     }
 
     /* ── Layout ──────────────────────────────────────────────── */
@@ -118,7 +126,6 @@
       font-size: 0.75rem;
       padding: 0.15rem 0.6rem;
     }
-    .guess-cell { font-size: 0.85rem; color: var(--muted); }
     .guess-alive { color: var(--active); font-weight: 600; }
     .guess-out   { text-decoration: line-through; opacity: 0.6; }
 
@@ -274,7 +281,6 @@
       font-weight: 700;
       line-height: 1;
     }
-    .roster-pts-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
     .roster-guess { font-size: 0.8rem; color: var(--muted); text-align: right; }
     .roster-guess .name { font-weight: 600; display: block; }
 
@@ -291,7 +297,6 @@
     .castaway-row.out .castaway-name { text-decoration: line-through; }
 
     .castaway-name { font-size: 0.875rem; font-weight: 500; }
-    .castaway-sub  { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.2rem; }
 
     .badge {
       display: inline-block;
@@ -313,67 +318,6 @@
       padding-left: 0.5rem;
     }
 
-    /* ── Sidebar ─────────────────────────────────────────────── */
-    .hamburger {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 1.4rem;
-      cursor: pointer;
-      padding: 0.3rem 0.55rem;
-      line-height: 1;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .hamburger:hover { color: var(--fire); border-color: var(--fire); }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 90;
-    }
-    .sidebar-overlay.open { display: block; }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 200px;
-      height: 100vh;
-      background: var(--card-bg);
-      border-right: 1px solid var(--card-border);
-      z-index: 100;
-      transform: translateX(-100%);
-      transition: transform 0.25s ease;
-      padding-top: 5rem;
-      display: flex;
-      flex-direction: column;
-    }
-    .sidebar.open { transform: translateX(0); }
-
-    .sidebar-item {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1rem;
-      color: var(--muted);
-      padding: 0.9rem 1.5rem;
-      cursor: pointer;
-      letter-spacing: 1px;
-      border-left: 3px solid transparent;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-      user-select: none;
-    }
-    .sidebar-item:hover { color: var(--text); background: rgba(61,42,15,0.3); }
-    .sidebar-item.active {
-      color: var(--fire);
-      border-left-color: var(--fire);
-      background: rgba(249,115,22,0.08);
-    }
 
     .scoring-grid {
       display: grid;
@@ -464,7 +408,7 @@
     }
     .sheet-scroll {
       overflow-y: auto;
-      padding: 0 1.5rem 1.5rem;
+      padding: 1.75rem 1.5rem 1.5rem;
       flex: 1;
       min-height: 0;
     }
@@ -493,26 +437,11 @@
       .sheet-handle { display: none; }
     }
 
-    .sheet-hero {
-      aspect-ratio: 1;
-      background-size: cover;
-      background-position: center;
-      background-color: #1a0800;
-      position: relative;
-      margin: -1.5rem -1.5rem 0;
-      width: calc(100% + 3rem);
-    }
-    .sheet-hero-overlay {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 1.25rem 1.5rem 0.75rem;
-      background: linear-gradient(transparent, rgba(0,0,0,0.85));
-    }
     .sheet-hero-name {
       font-family: 'Oswald', sans-serif;
       font-size: 1.4rem;
       font-weight: 700;
-      color: #fef3c7;
+      color: var(--text);
     }
     .sheet-meta {
       display: flex; align-items: center; gap: 0.5rem;
@@ -580,9 +509,6 @@
       section { margin-bottom: 2rem; }
       .section-title { font-size: 1.1rem; margin-bottom: 1rem; }
 
-      /* Hide Survivor Pick column — visible in roster cards below */
-      .standings-table th:nth-child(5),
-      .standings-table td:nth-child(5) { display: none; }
       .standings-table th,
       .standings-table td { padding: 0.6rem 0.75rem; }
       .points-cell { font-size: 1.1rem; }
@@ -626,8 +552,7 @@
 <body>
 
 <header>
-  <button class="hamburger" onclick="toggleSidebar()">☰</button>
-  <img src="images/logos/50.png" alt="Survivor 50" class="header-logo" id="page-title">
+  <img src="images/logos/51.png" alt="Survivor 51" class="header-logo" id="page-title" onerror="handleLogoError(this)">
 </header>
 
 <div id="loading">🔥 Loading draft data…</div>
@@ -637,14 +562,8 @@
   <p>Make sure the Google Sheet is set to <strong>"Anyone with the link can view"</strong> and the Sheet ID in <code>config.js</code> is correct.</p>
 </div>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
-<nav class="sidebar" id="sidebar">
-  <div id="sidebar-seasons"></div>
-  <div class="sidebar-item" data-tab="scoring" onclick="switchTab('scoring')">Scoring</div>
-</nav>
-
 <div id="app" style="display:none">
-<main id="tab-season">
+<main>
 
   <!-- STANDINGS -->
   <section>
@@ -656,8 +575,6 @@
           <th>Rank</th>
           <th>Player</th>
           <th>Points</th>
-          <th>Active</th>
-          <th>Survivor Pick</th>
         </tr>
       </thead>
       <tbody id="standings-body"></tbody>
@@ -694,15 +611,13 @@
     <div class="rosters-grid" id="rosters-grid"></div>
   </section>
 
-</main>
-
-<main id="tab-scoring" style="display:none">
+  <!-- SCORING -->
   <section>
-    <h2 class="section-title">📋 HOW SCORING WORKS</h2>
+    <h2 class="section-title">📋 SCORING</h2>
     <div class="scoring-grid" id="scoring-grid"></div>
   </section>
-</main>
 
+</main>
 </div>
 
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
@@ -714,7 +629,6 @@
 <script>
 // ── State ─────────────────────────────────────────────────────────────────
 let appData = null;
-let activeSeason = null;
 let teamChartInst = null;
 let castawayChartInst = null;
 
@@ -723,9 +637,12 @@ function fmt(n) {
   return s.endsWith('.0') ? s.slice(0, -2) : s;
 }
 
-function castawayPhoto(name) {
-  const clean = name.replace(/"[^"]*"\s*/g, '').replace(/\s+/g, ' ').trim();
-  return 'images/castaways/' + clean.replace(/ /g, '_') + '.png';
+function handleLogoError(img) {
+  const h1 = document.createElement('h1');
+  h1.id = 'page-title';
+  h1.className = 'header-logo-text';
+  h1.textContent = img.alt || CONFIG.SEASON_TITLE;
+  img.replaceWith(h1);
 }
 
 // Color palette — assigned by alphabetical team order
@@ -740,15 +657,9 @@ const PALETTE = [
   '#94a3b8', // slate (fallback)
 ];
 
-const LOGO_MAP = { 'Season 48': 'images/logos/48.png', 'Season 49': 'images/logos/49.png', 'Season 50': 'images/logos/50.png' };
-
 // Google Sheets CSV endpoint
 const SHEET_BASE = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
 
-// Tribe colors — loaded from Config sheet, keyed by "Season|Tribe"
-let tribeColorMap = {};
-// Winner picks — loaded from "Winner picks" sheet, keyed by season title
-let winnerPicks = {};
 // Scoring rules — loaded from "Scoring" sheet
 let scoringRules = [];
 let scoringLookup = {};
@@ -761,11 +672,7 @@ function hexToRgba(hex, alpha) {
 }
 
 function getTribeColor(name) {
-  const key = activeSeason ? `${activeSeason.title}|${name}` : name;
-  let hex = tribeColorMap[key];
-  // Fallback: match any season with this tribe name
-  if (!hex) hex = Object.entries(tribeColorMap).find(([k]) => k.endsWith(`|${name}`))?.[1];
-  if (!hex) hex = '#94a3b8';
+  const hex = (appData && appData.tribeColor && appData.tribeColor[name]) || '#94a3b8';
   return { color: hex, bg: hexToRgba(hex, 0.15), border: hexToRgba(hex, 0.35) };
 }
 
@@ -810,6 +717,13 @@ function buildTeamCumulativePoints(teams, teamNames, activeWeeks) {
   });
 }
 
+function buildTribeColors(castaways) {
+  const tribeNames = [...new Set(castaways.flatMap(c => c.tribes.map(t => t.value)))].sort();
+  const tribeColor = {};
+  tribeNames.forEach((t, i) => { tribeColor[t] = PALETTE[i % PALETTE.length]; });
+  return tribeColor;
+}
+
 function buildActiveNames(castaways) {
   const active = castaways.filter(c => !c.eliminated);
   return {
@@ -843,95 +757,8 @@ function parseCSV(text) {
   return rows;
 }
 
-// ── Data Processing ────────────────────────────────────────────────────────
-function processData(mainRows, seasonPicks) {
-  const headers = mainRows[0].map(h => h.trim().toLowerCase());
-  const col = name => headers.indexOf(name.toLowerCase());
-
-  // Find week columns (Week 1 … Week N)
-  const weekCols = [];
-  headers.forEach((h, i) => {
-    const m = h.match(/^week (\d+)$/);
-    if (m) weekCols.push({ num: parseInt(m[1]), idx: i });
-  });
-  weekCols.sort((a, b) => a.num - b.num);
-
-  // Parse castaway rows
-  const castaways = [];
-  for (let r = 1; r < mainRows.length; r++) {
-    const row = mainRows[r];
-    const name = (row[col('contestant')] || '').trim();
-    if (!name) continue;
-
-    const weekPoints = weekCols.map(w => {
-      const v = (row[w.idx] || '').trim();
-      return v === '' ? null : parseFloat(v);
-    });
-
-    // Explicit Eliminated column (if present)
-    const elimIdx = col('eliminated');
-    const elimRaw = elimIdx >= 0 ? (row[elimIdx] || '').trim() : '';
-    const eliminatedExplicit = elimIdx >= 0 ? /^(yes|y|true|x|1)$/i.test(elimRaw) : null;
-
-    const tribes = ['tribe 1', 'tribe 2', 'tribe 3']
-      .map(t => ({ field: t, value: (row[col(t)] || '').trim() }))
-      .filter(t => t.value);
-
-    castaways.push({
-      name,
-      advantages: (row[col('advantages')] || '').trim(),
-      team: (row[col('team')] || '').trim(),
-      tribes,
-      weekPoints,
-      total: parseFloat((row[col('total')] || '').trim()) || 0,
-      eliminated: eliminatedExplicit, // null = not set yet
-    });
-  }
-
-  // Detect current week = last week with at least one non-null score
-  let currentWeekNum = 0;
-  for (let w = weekCols.length - 1; w >= 0; w--) {
-    if (castaways.some(c => c.weekPoints[w] !== null)) {
-      currentWeekNum = weekCols[w].num;
-      break;
-    }
-  }
-  const activeWeeks = weekCols.filter(w => w.num <= currentWeekNum);
-  const currentWeekIdx = weekCols.findIndex(w => w.num === currentWeekNum);
-
-  // Infer eliminated if no explicit column
-  const hasElimCol = col('eliminated') >= 0;
-  castaways.forEach(c => {
-    if (c.eliminated !== null) return; // explicit value present
-    if (!hasElimCol) {
-      // Infer: eliminated if last non-null week < current week
-      const lastData = c.weekPoints.reduce((last, v, i) => v !== null ? i : last, -1);
-      c.eliminated = lastData >= 0 && lastData < currentWeekIdx;
-      if (c.eliminated) c.eliminatedWeek = weekCols[lastData].num;
-    } else {
-      c.eliminated = false;
-    }
-  });
-
-  // Compute castaway cumulative points over active weeks
-  castaways.forEach(c => {
-    let cum = 0;
-    c.cumulativePoints = activeWeeks.map(w => {
-      const wi = weekCols.indexOf(w);
-      if (c.weekPoints[wi] !== null) cum += c.weekPoints[wi];
-      return cum;
-    });
-  });
-
-  const { teamNames, teamColor, teams } = buildTeams(castaways, seasonPicks);
-  buildTeamCumulativePoints(teams, teamNames, activeWeeks);
-  const activeNames = buildActiveNames(castaways);
-
-  return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
-}
-
 // ── Event-Based Data Processing ───────────────────────────────────────────
-function processEventData(rosterRows, eventRows, seasonPicks) {
+function processEventData(rosterRows, eventRows, teamPicks) {
   const rHeaders = rosterRows[0].map(h => h.trim().toLowerCase());
   const rCol = name => rHeaders.indexOf(name.toLowerCase());
 
@@ -948,7 +775,7 @@ function processEventData(rosterRows, eventRows, seasonPicks) {
     const name = (row[rCol('contestant')] || '').trim();
     if (!name) continue;
 
-    const tribes = ['tribe 1', 'tribe 2', 'tribe 3']
+    const tribes = ['tribe 1', 'tribe 2']
       .map(t => ({ field: t, value: (row[rCol(t)] || '').trim() }))
       .filter(t => t.value);
 
@@ -982,29 +809,23 @@ function processEventData(rosterRows, eventRows, seasonPicks) {
     return castawayMap.get(nameStr.toLowerCase()) || [];
   }
 
-  // Parse events — separate meta events from scoring events
+  // Parse events
   const eHeaders = eventRows[0].map(h => h.trim().toLowerCase());
   const eCol = name => eHeaders.indexOf(name.toLowerCase());
 
-  const swapWeeks = [];
-  const rawEvents = [];
-
+  const expandedEvents = [];
   for (let r = 1; r < eventRows.length; r++) {
     const row = eventRows[r];
     const week = parseInt((row[eCol('week')] || '').trim()) || 0;
     const contestant = (row[eCol('contestant')] || '').trim();
-    const tribe = (row[eCol('tribe')] || '').trim();
     const event = (row[eCol('event')] || '').trim();
     const idol = (row[eCol('idol or advantage')] || '').trim();
     const otherPlayer = (row[eCol('other player')] || '').trim();
     const eventLower = event.toLowerCase();
 
-    if (eventLower === 'tribe swap' || eventLower === 'merge') {
-      swapWeeks.push(week);
-      continue;
-    }
+    if (eventLower === 'tribe swap' || eventLower === 'merge') continue;
 
-    if (eventLower === 'eliminated' || eventLower === 'medivacked') {
+    if (eventLower === 'voted out' || eventLower === 'medivacked') {
       lookupCastaways(contestant).forEach(c => {
         c.eliminated = true;
         c.eliminatedWeek = week;
@@ -1012,39 +833,8 @@ function processEventData(rosterRows, eventRows, seasonPicks) {
       continue;
     }
 
-    rawEvents.push({ week, contestant, tribe, event, idol, otherPlayer });
-  }
-  swapWeeks.sort((a, b) => a - b);
-
-  // Tribe column resolver: count swap/merge events at or before a week
-  function tribeColForWeek(week) {
-    let idx = 0;
-    for (const sw of swapWeeks) {
-      if (week >= sw) idx++;
-      else break;
-    }
-    return Math.min(idx, 2); // max Tribe 3
-  }
-
-  // Expand tribe events to individual contestants (deduplicate by name)
-  const expandedEvents = [];
-  for (const e of rawEvents) {
-    if (e.tribe && !e.contestant) {
-      const tribeIdx = tribeColForWeek(e.week);
-      const tribeField = `tribe ${tribeIdx + 1}`;
-      const seen = new Set();
-      castaways.forEach(c => {
-        if (seen.has(c.name)) return;
-        // Skip contestants eliminated before this week
-        if (c.eliminatedWeek != null && e.week > c.eliminatedWeek) return;
-        if (c.tribes.some(t => t.field === tribeField && t.value.toLowerCase() === e.tribe.toLowerCase())) {
-          seen.add(c.name);
-          expandedEvents.push({ ...e, contestant: c.name });
-        }
-      });
-    } else if (e.contestant) {
-      expandedEvents.push(e);
-    }
+    if (!contestant) continue;
+    expandedEvents.push({ week, contestant, event, idol, otherPlayer });
   }
 
   // Compute points per contestant (assign to all team instances)
@@ -1077,11 +867,12 @@ function processEventData(rosterRows, eventRows, seasonPicks) {
     });
   });
 
-  const { teamNames, teamColor, teams } = buildTeams(castaways, seasonPicks);
+  const { teamNames, teamColor, teams } = buildTeams(castaways, teamPicks);
   buildTeamCumulativePoints(teams, teamNames, activeWeeks);
   const activeNames = buildActiveNames(castaways);
+  const tribeColor = buildTribeColors(castaways);
 
-  return { castaways, teams, teamNames, teamColor, activeWeeks, currentWeekNum, activeNames };
+  return { castaways, teams, teamNames, teamColor, tribeColor, activeWeeks, currentWeekNum, activeNames };
 }
 
 // ── Chart Helpers ──────────────────────────────────────────────────────────
@@ -1108,22 +899,15 @@ function baseChartOptions() {
 }
 
 // ── Render: Standings ──────────────────────────────────────────────────────
-function renderStandings({ teams, teamNames, activeNames }) {
+function renderStandings({ teams, teamNames }) {
   const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
   document.getElementById('standings-body').innerHTML = sorted.map((t, i) => {
     const tm = teams[t];
     const rank = i + 1;
-    const guess = tm.survivorGuess;
-    const guessAlive = guess && activeNames.has(guess);
-    const guessHtml = guess
-      ? `<span class="${guessAlive ? 'guess-alive' : 'guess-out'}">${guess}</span> ${guessAlive ? '🟢' : '☠️'}`
-      : '—';
     return `<tr>
       <td><span class="rank-num" style="color:${rank === 1 ? 'var(--fire)' : 'var(--muted)'}">${rank === 1 ? '🔥' : rank}</span></td>
       <td><span class="color-dot" style="background:${tm.color}"></span><span class="player-name">${t}</span></td>
       <td><span class="points-cell" style="color:${tm.color}">${fmt(tm.totalPoints)}</span></td>
-      <td><span class="active-badge">${tm.activeCount} active</span></td>
-      <td class="guess-cell">${guessHtml}</td>
     </tr>`;
   }).join('');
 }
@@ -1288,15 +1072,8 @@ function renderRosters({ teams, teamNames, activeNames }) {
     const castawayRows = [...tm.castaways]
       .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
       .map(c => {
-        const tribeBadges = c.tribes.map(t => tribeBadge(t.value)).join('');
-        const advBadges = c.advantages
-          ? c.advantages.split(',').map(a => `<span class="badge badge-adv">${a.trim()}</span>`).join('')
-          : '';
         return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
-          <div>
-            <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
-            <div class="castaway-sub">${tribeBadges}${advBadges}</div>
-          </div>
+          <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
           <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
         </div>`;
       }).join('');
@@ -1311,10 +1088,7 @@ function renderRosters({ teams, teamNames, activeNames }) {
       <div class="roster-header">
         <div class="roster-player" style="color:${tm.color}">${t}</div>
         <div class="roster-meta">
-          <div>
-            <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
-            <div class="roster-pts-label">pts · ${tm.activeCount} active</div>
-          </div>
+          <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
           ${guessSection}
         </div>
       </div>
@@ -1342,32 +1116,6 @@ function renderScoring() {
       ${catMap[cat].map(r => `<div class="scoring-row"><span>${r.event}</span><span class="scoring-pts">${r.points}</span></div>`).join('')}
     </div>
   `).join('');
-}
-
-// ── Sidebar & Tabs ────────────────────────────────────────────────────────
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('open');
-}
-
-function switchTab(tab) {
-  document.getElementById('tab-season').style.display = tab === 'scoring' ? 'none' : '';
-  document.getElementById('tab-scoring').style.display = tab === 'scoring' ? '' : 'none';
-  document.querySelectorAll('.sidebar-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.tab === tab);
-  });
-  toggleSidebar();
-  localStorage.setItem('activeTab', tab);
-  if (tab !== 'scoring') loadSeason(CONFIG.SEASONS.find(s => s.title === tab));
-}
-
-function renderSidebar() {
-  const savedTab = localStorage.getItem('activeTab');
-  const activeTab = savedTab || CONFIG.SEASONS[0].title;
-  document.getElementById('sidebar-seasons').innerHTML = CONFIG.SEASONS.map(s => {
-    const escaped = s.title.replace(/'/g, "\\'");
-    return `<div class="sidebar-item ${s.title === activeTab ? 'active' : ''}" data-tab="${s.title}" onclick="switchTab('${escaped}')">${s.title}</div>`;
-  }).join('');
 }
 
 // ── Castaway Detail (bottom sheet / modal) ───────────────────────────────
@@ -1399,7 +1147,7 @@ function openSheet(name) {
       </div>`).join('');
   }
 
-  const tribeLabels = ['Tribe 1', 'Tribe 2', 'Tribe 3'];
+  const tribeLabels = ['Tribe 1', 'Tribe 2'];
   const tribesHtml = c.tribes.map((t, i) => `<div class="sheet-section">
       <div class="sheet-section-header">${tribeLabels[i] || t.field} ${tribeBadge(t.value)}</div>
       ${tribemateRows(t.value, t.field)}
@@ -1428,14 +1176,10 @@ function openSheet(name) {
   }
 
   document.getElementById('sheet-body').innerHTML = `
-    <div class="sheet-hero" style="background-image:url('${castawayPhoto(c.name)}')">
-      <div class="sheet-hero-overlay">
-        <div class="sheet-hero-name">${c.name}</div>
-        <div class="sheet-meta">
-          <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
-          ${statusBadge} ${advHtml}
-        </div>
-      </div>
+    <div class="sheet-hero-name">${c.name}</div>
+    <div class="sheet-meta">
+      <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
+      ${statusBadge} ${advHtml}
     </div>
     <div class="sheet-owner">Drafted by ${draftedByHtml}</div>
     ${eventsHtml}
@@ -1504,87 +1248,19 @@ document.addEventListener('click', e => {
   if (el) openSheet(el.dataset.castaway);
 });
 
-// ── Load Season ───────────────────────────────────────────────────────────
-async function loadSeason(season) {
-  if (!season || season === activeSeason) return;
-  activeSeason = season;
-
-  document.getElementById('page-title').src = LOGO_MAP[season.title] || 'images/logos/50.png';
-  document.getElementById('page-title').alt = season.title;
-  document.title = season.title;
-
-  try {
-    const fetches = [fetch(SHEET_BASE + encodeURIComponent(season.mainSheet))];
-    if (season.scoringSheet) fetches.push(fetch(SHEET_BASE + encodeURIComponent(season.scoringSheet)));
-    const responses = await Promise.all(fetches);
-
-    if (!responses[0].ok) throw new Error(`HTTP ${responses[0].status} — check that the sheet is publicly shared.`);
-    const mainText = await responses[0].text();
-    const seasonPicks = (winnerPicks[season.title] || []).map(p => [p.name, p.pick]);
-
-    if (season.scoringSheet) {
-      if (!responses[1].ok) throw new Error(`HTTP ${responses[1].status} — scoring sheet not found.`);
-      const eventText = await responses[1].text();
-      appData = processEventData(parseCSV(mainText), parseCSV(eventText), seasonPicks);
-    } else {
-      appData = processData(parseCSV(mainText), seasonPicks);
-    }
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-
-    renderStandings(appData);
-    renderTeamChart(appData);
-    renderFilters(appData);
-    renderCastawayChart(appData);
-    renderRosters(appData);
-
-  } catch (err) {
-    document.getElementById('loading').style.display = 'none';
-    const el = document.getElementById('error-msg');
-    el.style.display = 'block';
-    document.getElementById('error-detail').textContent = err.message;
-  }
-}
-
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main() {
-  // Fetch Config, Winner picks, and Scoring sheets in parallel at startup
-  const [configRes, picksRes, scoringRes] = await Promise.all([
-    fetch(SHEET_BASE + encodeURIComponent('Config')).catch(() => null),
-    fetch(SHEET_BASE + encodeURIComponent('Winner picks')).catch(() => null),
-    fetch(SHEET_BASE + encodeURIComponent('Scoring')).catch(() => null),
+  const logoEl = document.getElementById('page-title');
+  logoEl.src = CONFIG.LOGO;
+  logoEl.alt = CONFIG.SEASON_TITLE;
+  document.title = CONFIG.SEASON_TITLE;
+
+  const [teamsRes, contestantsRes, eventsRes, scoringRes] = await Promise.all([
+    fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.teams)).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.contestants)).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.events)).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.scoring)).catch(() => null),
   ]);
-
-  // Parse tribe colors from Config sheet
-  try {
-    if (configRes && configRes.ok) {
-      const rows = parseCSV(await configRes.text());
-      for (let r = 1; r < rows.length; r++) {
-        const season = (rows[r][0] || '').trim();
-        const tribe  = (rows[r][1] || '').trim();
-        const color  = (rows[r][2] || '').trim();
-        if (season && tribe && color) tribeColorMap[`Season ${season}|${tribe}`] = color;
-      }
-    }
-  } catch (_) {}
-
-  // Parse winner picks, grouped by season
-  try {
-    if (picksRes && picksRes.ok) {
-      const rows = parseCSV(await picksRes.text());
-      for (let r = 1; r < rows.length; r++) {
-        const season = (rows[r][0] || '').trim();
-        const name   = (rows[r][1] || '').trim();
-        const pick   = (rows[r][2] || '').trim();
-        const seasonKey = `Season ${season}`;
-        if (season && name) {
-          if (!winnerPicks[seasonKey]) winnerPicks[seasonKey] = [];
-          winnerPicks[seasonKey].push({ name, pick });
-        }
-      }
-    }
-  } catch (_) {}
 
   // Parse scoring rules from Scoring sheet (columns: Category, Event, Points)
   try {
@@ -1601,19 +1277,46 @@ async function main() {
     }
   } catch (_) {}
 
-  renderSidebar();
-  const savedTab = localStorage.getItem('activeTab');
-  if (savedTab === 'scoring') {
-    document.getElementById('tab-season').style.display = 'none';
-    document.getElementById('tab-scoring').style.display = '';
-    document.querySelectorAll('.sidebar-item').forEach(el => {
-      el.classList.toggle('active', el.dataset.tab === 'scoring');
-    });
+  try {
+    if (!contestantsRes || !contestantsRes.ok) {
+      throw new Error(`HTTP ${contestantsRes ? contestantsRes.status : '—'} — check that the "${CONFIG.SHEETS.contestants}" sheet is publicly shared.`);
+    }
+    if (!eventsRes || !eventsRes.ok) {
+      throw new Error(`HTTP ${eventsRes ? eventsRes.status : '—'} — check that the "${CONFIG.SHEETS.events}" sheet is publicly shared.`);
+    }
+
+    // Parse team names & winner picks from Teams sheet (columns: Name, Winner pick)
+    const teamPicks = [];
+    if (teamsRes && teamsRes.ok) {
+      const rows = parseCSV(await teamsRes.text());
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const nameIdx = headers.indexOf('name');
+      const pickIdx = headers.indexOf('winner pick');
+      for (let r = 1; r < rows.length; r++) {
+        const name = (rows[r][nameIdx] || '').trim();
+        const pick = (rows[r][pickIdx] || '').trim();
+        if (name) teamPicks.push([name, pick]);
+      }
+    }
+
+    const contestantsRows = parseCSV(await contestantsRes.text());
+    const eventsRows = parseCSV(await eventsRes.text());
+    appData = processEventData(contestantsRows, eventsRows, teamPicks);
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-  } else {
-    const savedSeason = savedTab && CONFIG.SEASONS.find(s => s.title === savedTab);
-    loadSeason(savedSeason || CONFIG.SEASONS[0]);
+
+    renderStandings(appData);
+    renderTeamChart(appData);
+    renderFilters(appData);
+    renderCastawayChart(appData);
+    renderRosters(appData);
+
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('error-msg');
+    el.style.display = 'block';
+    document.getElementById('error-detail').textContent = err.message;
   }
 }
 
