@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#faf6ee">
   <title>Survivor 51</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -10,14 +11,15 @@
   <script src="config.js"></script>
   <style>
     :root {
-      --bg:          #0d0a06;
-      --card-bg:     #1c1209;
-      --card-border: #3d2a0f;
-      --fire:        #f97316;
-      --ember:       #dc2626;
-      --text:        #fef3c7;
-      --muted:       #a8995c;
-      --active:      #22c55e;
+      --bg:          #faf6ee;
+      --card-bg:     #ffffff;
+      --card-border: #e7dcc6;
+      --surface-2:   #f3ece0;
+      --fire:        #c2410c;
+      --ember:       #b91c1c;
+      --text:        #2b1d0e;
+      --muted:       #7a6a4f;
+      --active:      #15803d;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,7 +34,7 @@
     /* ── Header ─────────────────────────────────────────────── */
     header {
       position: relative;
-      background: linear-gradient(135deg, #1a0800 0%, #3d1200 50%, #1a0800 100%);
+      background: linear-gradient(135deg, #fde7cf 0%, #fbd3a8 50%, #fde7cf 100%);
       border-bottom: 2px solid var(--fire);
       padding: 1.5rem 2rem;
       text-align: center;
@@ -56,7 +58,43 @@
       margin: 0 auto;
       padding: 2rem 1.5rem;
     }
-    section { margin-bottom: 3rem; }
+    section { margin-bottom: 3rem; scroll-margin-top: 3.25rem; }
+    html { scroll-behavior: smooth; }
+
+    /* ── Section tabs (sticky) ───────────────────────────────── */
+    .section-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0.4rem 0.75rem;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .section-tabs::-webkit-scrollbar { display: none; }
+    /* Centered when it fits, scrollable from the start when it doesn't */
+    .section-tabs a:first-child { margin-left: auto; }
+    .section-tabs a:last-child  { margin-right: auto; }
+    .section-tabs a {
+      flex-shrink: 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 0.45rem 0.8rem;
+      border-radius: 9999px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s, background 0.15s;
+    }
+    .section-tabs a.active {
+      color: var(--fire);
+      background: var(--surface-2);
+    }
 
     .section-title {
       font-family: 'Oswald', sans-serif;
@@ -79,7 +117,7 @@
       overflow: hidden;
     }
     .standings-table th {
-      background: #2d1810;
+      background: var(--surface-2);
       color: var(--muted);
       font-family: 'Oswald', sans-serif;
       font-size: 0.75rem;
@@ -94,7 +132,9 @@
       vertical-align: middle;
     }
     .standings-table tr:last-child td { border-bottom: none; }
-    .standings-table tr:hover td { background: rgba(249,115,22,0.04); }
+    @media (hover: hover) {
+      .standings-table tr:hover td { background: rgba(194,65,12,0.06); }
+    }
 
     .rank-num {
       font-family: 'Oswald', sans-serif;
@@ -143,14 +183,6 @@
       min-width: 0;
       overflow: hidden;
     }
-    .chart-label {
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.8rem;
-      color: var(--muted);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
     .chart-controls {
       display: flex;
       align-items: center;
@@ -180,7 +212,7 @@
       width: 36px;
       height: 20px;
       border-radius: 10px;
-      background: #2d1810;
+      background: var(--surface-2);
       border: 1px solid var(--card-border);
       transition: background 0.2s, border-color 0.2s;
     }
@@ -203,51 +235,6 @@
       background: var(--active);
     }
 
-    /* Sort dropdown */
-    .sort-select {
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.5px;
-      color: var(--muted);
-      background: #2d1810;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 0.35rem 1.8rem 0.35rem 0.6rem;
-      appearance: none;
-      -webkit-appearance: none;
-      cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8995c'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.6rem center;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .sort-select:hover, .sort-select:focus {
-      border-color: var(--fire);
-      color: var(--text);
-      outline: none;
-    }
-
-    .filter-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 1rem;
-    }
-    .pill {
-      cursor: pointer;
-      padding: 0.25rem 0.7rem;
-      border-radius: 9999px;
-      border: 1px solid;
-      font-size: 0.75rem;
-      font-family: 'Oswald', sans-serif;
-      letter-spacing: 0.5px;
-      background: transparent;
-      transition: opacity 0.15s, filter 0.15s;
-      opacity: 0.55;
-    }
-    .pill.active { opacity: 1; filter: brightness(1.2); }
-    .pill:hover   { opacity: 0.85; }
-
     /* ── Roster Cards ────────────────────────────────────────── */
     .rosters-grid {
       display: grid;
@@ -261,9 +248,23 @@
       overflow: hidden;
     }
     .roster-header {
+      display: block;
       padding: 1rem 1.25rem 0.85rem;
       border-bottom: 1px solid var(--card-border);
+      list-style: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
+    .roster-header::-webkit-details-marker { display: none; }
+    .roster-card:not([open]) .roster-header { border-bottom: none; }
+    .roster-chevron {
+      display: inline-block;
+      font-size: 0.8em;
+      margin-left: 0.4rem;
+      color: var(--muted);
+      transition: transform 0.2s;
+    }
+    .roster-card[open] .roster-chevron { transform: rotate(90deg); }
     .roster-player {
       font-family: 'Oswald', sans-serif;
       font-size: 1.25rem;
@@ -290,7 +291,7 @@
       justify-content: space-between;
       align-items: flex-start;
       padding: 0.55rem 1.25rem;
-      border-bottom: 1px solid rgba(61,42,15,0.4);
+      border-bottom: 1px solid rgba(61,42,15,0.15);
     }
     .castaway-row:last-child { border-bottom: none; }
     .castaway-row.out { opacity: 0.38; }
@@ -307,7 +308,7 @@
       letter-spacing: 0.3px;
     }
     .badge-tribe { border: 1px solid; } /* color set inline per tribe */
-    .badge-adv   { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
+    .badge-adv   { background: rgba(168,85,247,0.15); color: #7e22ce; border: 1px solid rgba(168,85,247,0.25); }
 
     .castaway-pts {
       font-family: 'Oswald', sans-serif;
@@ -337,7 +338,7 @@
       justify-content: space-between;
       font-size: 0.8rem;
       padding: 0.25rem 0;
-      border-bottom: 1px solid rgba(61,42,15,0.35);
+      border-bottom: 1px solid rgba(61,42,15,0.15);
       gap: 0.5rem;
     }
     .scoring-row:last-child { border-bottom: none; }
@@ -360,13 +361,38 @@
     .standings-table tr.out td { opacity: 0.4; }
     .standings-table tr.out .castaway-name-cell { text-decoration: line-through; }
 
+    /* Sortable table headers */
+    .standings-table th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) {
+      .standings-table th.sortable:hover { color: var(--text); }
+    }
+    .sort-ind {
+      color: var(--fire);
+      margin-left: 0.25rem;
+      letter-spacing: 0;
+    }
+    .sort-ind sup { font-size: 0.6rem; margin-left: 1px; }
+    .sort-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
     /* ── Castaway Detail (bottom sheet on mobile, modal on desktop) */
-    .clickable { cursor: pointer; transition: color 0.15s; }
-    .clickable:hover { color: var(--fire); text-decoration: underline; }
+    .clickable { cursor: pointer; transition: color 0.15s; -webkit-tap-highlight-color: transparent; }
+    .clickable-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    @media (hover: hover) {
+      .clickable:hover,
+      .clickable-row:hover .clickable { color: var(--fire); text-decoration: underline; }
+    }
 
     .sheet-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.35);
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.25s ease;
@@ -382,6 +408,7 @@
       border-top: 2px solid var(--fire);
       border-radius: 16px 16px 0 0;
       max-height: 85vh;
+      max-height: 85dvh;
       max-width: 500px;
       margin: 0 auto;
       display: flex;
@@ -404,12 +431,12 @@
     .sheet-handle::after {
       content: '';
       width: 40px; height: 4px;
-      background: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.2);
       border-radius: 2px;
     }
     .sheet-scroll {
       overflow-y: auto;
-      padding: 1.75rem 1.5rem 1.5rem;
+      padding: 1.75rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
       flex: 1;
       min-height: 0;
     }
@@ -468,8 +495,8 @@
     }
     .sheet-scoring {
       margin-top: 1rem;
-      background: rgba(61,42,15,0.2);
-      border: 1px solid rgba(61,42,15,0.5);
+      background: rgba(61,42,15,0.05);
+      border: 1px solid rgba(61,42,15,0.2);
       border-radius: 8px;
       padding: 1rem;
     }
@@ -479,7 +506,7 @@
     }
     .sheet-tribes {
       margin-top: 1.25rem;
-      border-top: 1px solid rgba(61,42,15,0.5);
+      border-top: 1px solid rgba(61,42,15,0.2);
       padding-top: 0.75rem;
     }
     .sheet-tribes > .sheet-section-header {
@@ -491,7 +518,7 @@
     .sheet-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 0.4rem 0;
-      border-bottom: 1px solid rgba(61,42,15,0.4);
+      border-bottom: 1px solid rgba(61,42,15,0.15);
       font-size: 0.85rem;
     }
     .sheet-row:last-child { border-bottom: none; }
@@ -500,7 +527,7 @@
     .sheet-row-name { flex: 1; font-weight: 500; }
 
     /* ── Mobile ──────────────────────────────────────────────── */
-    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; border-radius: 8px; }
 
     @media (max-width: 640px) {
       header { padding: 1rem; }
@@ -518,9 +545,6 @@
 
       .chart-card { padding: 1rem 0.75rem; }
 
-      /* Bigger touch targets for filter pills */
-      .pill { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
-
       .scoring-grid { grid-template-columns: 1fr; gap: 1rem; }
 
       .rosters-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -530,6 +554,24 @@
       .castaway-row { padding: 0.5rem 1rem; }
       .castaway-name { font-size: 0.82rem; }
 
+      .badge { font-size: 0.7rem; }
+      .team-chart-inner { height: 260px; }
+      .sort-hint { display: none; }
+
+      /* Keep castaway names in view while the overview table scrolls sideways */
+      #overview-table { overflow: visible; }
+      #overview-table th:first-child,
+      #overview-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background: var(--card-bg);
+      }
+      #overview-table th:first-child { background: var(--surface-2); }
+      #overview-table tr.out td:first-child { opacity: 1; }
+      #overview-table tr.out td:first-child > * { opacity: 0.4; }
+      #overview-table td:nth-child(3),
+      #overview-table td:nth-child(6) { white-space: nowrap; }
     }
 
     /* ── Loading / Error ─────────────────────────────────────── */
@@ -564,10 +606,17 @@
 </div>
 
 <div id="app" style="display:none">
+<nav class="section-tabs" id="section-tabs">
+  <a href="#standings">⚔️ Standings</a>
+  <a href="#chart">📈 Chart</a>
+  <a href="#overview">🧭 Overview</a>
+  <a href="#rosters">🏝️ Rosters</a>
+  <a href="#scoring">📋 Scoring</a>
+</nav>
 <main>
 
   <!-- STANDINGS -->
-  <section>
+  <section id="standings">
     <h2 class="section-title">⚔️ STANDINGS</h2>
     <div class="table-scroll">
     <table class="standings-table">
@@ -584,7 +633,7 @@
   </section>
 
   <!-- CHARTS -->
-  <section>
+  <section id="chart">
     <h2 class="section-title">📈 STANDINGS OVER TIME</h2>
     <div class="charts-grid">
       <div class="chart-card">
@@ -598,18 +647,19 @@
   </section>
 
   <!-- GAME OVERVIEW -->
-  <section>
+  <section id="overview">
     <h2 class="section-title">🧭 GAME OVERVIEW</h2>
     <div class="chart-controls" id="overview-filters"></div>
     <div class="table-scroll">
     <table class="standings-table" id="overview-table">
       <thead>
         <tr>
-          <th>Castaway</th>
-          <th>Tribe</th>
+          <th class="sortable" data-sort="name" onclick="onOverviewHeaderClick(event, 'name')">Castaway</th>
+          <th class="sortable" data-sort="tribe" onclick="onOverviewHeaderClick(event, 'tribe')">Tribe</th>
+          <th class="sortable" data-sort="points" onclick="onOverviewHeaderClick(event, 'points')">Points</th>
           <th>Advantages</th>
-          <th>Team(s)</th>
-          <th>Points</th>
+          <th class="sortable" data-sort="teams" onclick="onOverviewHeaderClick(event, 'teams')">Team(s)</th>
+          <th class="sortable" data-sort="status" onclick="onOverviewHeaderClick(event, 'status')">Status</th>
         </tr>
       </thead>
       <tbody id="overview-body"></tbody>
@@ -618,13 +668,13 @@
   </section>
 
   <!-- ROSTERS -->
-  <section>
+  <section id="rosters">
     <h2 class="section-title">🏝️ TEAM ROSTERS</h2>
     <div class="rosters-grid" id="rosters-grid"></div>
   </section>
 
   <!-- SCORING -->
-  <section>
+  <section id="scoring">
     <h2 class="section-title">📋 SCORING</h2>
     <div class="scoring-grid" id="scoring-grid"></div>
   </section>
@@ -658,15 +708,21 @@ function handleLogoError(img) {
 
 // Color palette — assigned by alphabetical team order
 const PALETTE = [
-  '#f97316', // orange
-  '#facc15', // yellow
-  '#4ade80', // green
-  '#38bdf8', // sky
-  '#a78bfa', // violet
-  '#f472b6', // pink
-  '#2dd4bf', // teal
-  '#94a3b8', // slate (fallback)
+  '#ea580c', // orange
+  '#ca8a04', // yellow
+  '#16a34a', // green
+  '#0284c7', // sky
+  '#7c3aed', // violet
+  '#db2777', // pink
+  '#0d9488', // teal
+  '#64748b', // slate
 ];
+const FALLBACK_COLOR = '#64748b';
+
+// Matches the `@media (max-width: 640px)` breakpoint in the CSS
+function isPhone() {
+  return window.matchMedia('(max-width: 640px)').matches;
+}
 
 // Google Sheets CSV endpoint
 const SHEET_BASE = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=`;
@@ -683,14 +739,23 @@ function hexToRgba(hex, alpha) {
 }
 
 function getTribeColor(name) {
-  const hex = (appData && appData.tribeColor && appData.tribeColor[name]) || '#94a3b8';
-  return { color: hex, bg: hexToRgba(hex, 0.15), border: hexToRgba(hex, 0.35) };
+  const hex = (appData && appData.tribeColor && appData.tribeColor[name]) || FALLBACK_COLOR;
+  return { color: hex, border: hexToRgba(hex, 0.35) };
 }
 
+// Dark text on light fills, white text on dark fills
+function contrastText(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 160 ? '#2b1d0e' : '#ffffff';
+}
+
+// Current tribe: solid fill. Former tribe: outline only, dimmed.
 function tribeBadge(name, faded = false) {
   const t = getTribeColor(name);
-  const opacity = faded ? 'opacity:0.45;' : '';
-  return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border};${opacity}">${name}</span>`;
+  if (faded) {
+    return `<span class="badge badge-tribe" style="color:${t.color};background:transparent;border-color:${t.border};opacity:0.7">${name}</span>`;
+  }
+  return `<span class="badge badge-tribe" style="color:${contrastText(t.color)};background:${t.color};border-color:${t.color}">${name}</span>`;
 }
 
 // ── Shared Helpers ────────────────────────────────────────────────────────
@@ -899,23 +964,25 @@ function processEventData(rosterRows, eventRows, teamPicks, tribeColorConfig) {
 
 // ── Chart Helpers ──────────────────────────────────────────────────────────
 function baseChartOptions() {
+  const css = getComputedStyle(document.documentElement);
+  const v = name => css.getPropertyValue(name).trim();
   return {
     responsive: true,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { labels: { color: '#a8995c', font: { family: 'Oswald', size: 11 }, boxWidth: 12 } },
+      legend: { labels: { color: v('--muted'), font: { family: 'Oswald', size: 11 }, boxWidth: 12 } },
       tooltip: {
-        backgroundColor: '#1c1209',
-        borderColor: '#3d2a0f',
+        backgroundColor: v('--card-bg'),
+        borderColor: v('--card-border'),
         borderWidth: 1,
-        titleColor: '#fef3c7',
-        bodyColor: '#a8995c',
+        titleColor: v('--text'),
+        bodyColor: v('--muted'),
         callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}` },
       },
     },
     scales: {
-      x: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
-      y: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
+      x: { ticks: { color: v('--muted'), font: { family: 'Oswald' } }, grid: { color: v('--card-border') } },
+      y: { ticks: { color: v('--muted'), font: { family: 'Oswald' } }, grid: { color: v('--card-border') } },
     },
   };
 }
@@ -949,7 +1016,8 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
   }));
   // Set min-width so the chart is scrollable on mobile for many weeks
   const inner = document.querySelector('.team-chart-inner');
-  inner.style.minWidth = Math.max(labels.length * 50, 300) + 'px';
+  const perWeek = isPhone() ? 40 : 50;
+  inner.style.minWidth = Math.max(labels.length * perWeek, 300) + 'px';
 
   const ctx = document.getElementById('team-chart').getContext('2d');
   if (teamChartInst) teamChartInst.destroy();
@@ -961,7 +1029,18 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
 
 // ── Render: Game Overview Table ─────────────────────────────────────────────
 let overviewActiveOnly = false;
-let overviewSortMode = 'points'; // 'points', 'name', 'tribe', or 'elimination'
+let overviewMultiSort = false; // taps add sort levels (like Shift-click)
+let overviewSort = [{ key: 'points', dir: 'desc' }]; // ordered sort levels
+
+// Sortable columns: default direction and the value compared
+const OVERVIEW_SORTS = {
+  name:   { dir: 'asc',  val: c => c.name },
+  tribe:  { dir: 'asc',  val: c => c.tribes.length ? c.tribes[c.tribes.length - 1].value : '' },
+  points: { dir: 'desc', val: c => c.total },
+  teams:  { dir: 'asc',  val: c => c.teams.join(', ') },
+  // Active castaways first, then eliminated in reverse order (last out first)
+  status: { dir: 'desc', val: c => c.eliminated ? (c.eliminatedWeek ?? 999) : 9999 },
+};
 
 function renderOverviewTable({ castaways, teamColor, merged }) {
   let subset = castaways;
@@ -979,21 +1058,14 @@ function renderOverviewTable({ castaways, teamColor, merged }) {
   });
 
   let unique = [...byName.values()];
-  if (overviewSortMode === 'elimination') {
-    // Active castaways first (no eliminatedWeek), then eliminated in reverse order (last out first)
-    unique.sort((a, b) => {
-      const aElim = a.eliminated ? (a.eliminatedWeek ?? 999) : 9999;
-      const bElim = b.eliminated ? (b.eliminatedWeek ?? 999) : 9999;
-      return bElim - aElim || b.total - a.total;
-    });
-  } else if (overviewSortMode === 'name') {
-    unique.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (overviewSortMode === 'tribe' && !merged) {
-    const currentTribe = c => c.tribes.length ? c.tribes[c.tribes.length - 1].value : '';
-    unique.sort((a, b) => currentTribe(a).localeCompare(currentTribe(b)) || a.name.localeCompare(b.name));
-  } else {
-    unique.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
-  }
+  unique.sort((a, b) => {
+    for (const { key, dir } of overviewSort) {
+      const va = OVERVIEW_SORTS[key].val(a), vb = OVERVIEW_SORTS[key].val(b);
+      const cmp = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+      if (cmp) return dir === 'asc' ? cmp : -cmp;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   document.getElementById('overview-body').innerHTML = unique.map(c => {
     const tribeValues = [...new Set(c.tribes.map(t => t.value))].reverse();
@@ -1006,53 +1078,89 @@ function renderOverviewTable({ castaways, teamColor, merged }) {
       ? advValues.map(a => `<span class="badge badge-adv">${a}</span>`).join(' ')
       : '<span style="color:var(--muted)">—</span>';
 
-    const teamsHtml = c.teams.map(t => `<strong style="color:${teamColor[t] || '#94a3b8'}">${t}</strong>`).join(', ');
+    const statusHtml = c.eliminated
+      ? (c.eliminatedWeek != null ? `☠️ Wk ${c.eliminatedWeek}` : '☠️')
+      : '🟢';
 
-    return `<tr class="${c.eliminated ? 'out' : ''}">
-      <td><span class="castaway-name-cell clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</span></td>
+    const teamsHtml = c.teams.map(t => `<strong style="color:${teamColor[t] || FALLBACK_COLOR}">${t}</strong>`).join(', ');
+
+    return `<tr class="clickable-row ${c.eliminated ? 'out' : ''}" data-castaway="${c.name.replace(/"/g, '&quot;')}">
+      <td><span class="castaway-name-cell clickable">${c.name}</span></td>
       <td><div class="overview-badges">${tribeHtml}</div></td>
+      <td><span class="points-cell" style="font-size:1.1rem">${fmt(c.total)}</span></td>
       <td><div class="overview-badges">${advHtml}</div></td>
       <td>${teamsHtml}</td>
-      <td><span class="points-cell" style="font-size:1.1rem">${fmt(c.total)}</span></td>
+      <td>${statusHtml}</td>
     </tr>`;
   }).join('');
+
+  updateOverviewSortIndicators();
 }
 
-// ── Render: Filter Pills ───────────────────────────────────────────────────
-function renderOverviewFilters(data) {
-  if (data.merged && overviewSortMode === 'tribe') overviewSortMode = 'points';
+function updateOverviewSortIndicators() {
+  document.querySelectorAll('#overview-table th.sortable').forEach(th => {
+    th.querySelector('.sort-ind')?.remove();
+    const level = overviewSort.findIndex(s => s.key === th.dataset.sort);
+    if (level === -1) return;
+    const arrow = overviewSort[level].dir === 'asc' ? '▲' : '▼';
+    const num = overviewSort.length > 1 ? `<sup>${level + 1}</sup>` : '';
+    th.insertAdjacentHTML('beforeend', `<span class="sort-ind">${arrow}${num}</span>`);
+  });
+}
 
-  const tribeOption = data.merged ? '' :
-    `<option value="tribe" ${overviewSortMode === 'tribe' ? 'selected' : ''}>Sort by tribe</option>`;
+// Click: sort by this column alone (click again to reverse).
+// Shift-click or Multi-sort on: add as next level → reverse → remove.
+function onOverviewHeaderClick(e, key) {
+  const additive = e.shiftKey || overviewMultiSort;
+  const flip = dir => dir === 'asc' ? 'desc' : 'asc';
+  const existing = overviewSort.find(s => s.key === key);
+  if (!additive) {
+    overviewSort = [{
+      key,
+      dir: existing && overviewSort.length === 1 ? flip(existing.dir) : OVERVIEW_SORTS[key].dir,
+    }];
+  } else if (!existing) {
+    overviewSort.push({ key, dir: OVERVIEW_SORTS[key].dir });
+  } else if (existing.dir === OVERVIEW_SORTS[key].dir) {
+    existing.dir = flip(existing.dir);
+  } else if (overviewSort.length > 1) {
+    overviewSort = overviewSort.filter(s => s !== existing);
+  } else {
+    existing.dir = flip(existing.dir);
+  }
+  renderOverviewTable(appData);
+}
 
+// ── Render: Overview Controls ──────────────────────────────────────────────
+function renderOverviewFilters() {
   const container = document.getElementById('overview-filters');
   container.innerHTML = `
     <div class="toggle-wrap ${overviewActiveOnly ? 'on' : ''}" onclick="toggleOverviewActiveOnly()">
       <div class="toggle-track"><div class="toggle-thumb"></div></div>
       <span class="toggle-label">Active only</span>
     </div>
-    <select class="sort-select" onchange="setOverviewSort(this.value)">
-      <option value="points" ${overviewSortMode === 'points' ? 'selected' : ''}>Sort by points</option>
-      <option value="name" ${overviewSortMode === 'name' ? 'selected' : ''}>Sort by name</option>
-      ${tribeOption}
-      <option value="elimination" ${overviewSortMode === 'elimination' ? 'selected' : ''}>Sort by elimination</option>
-    </select>`;
+    <div class="toggle-wrap ${overviewMultiSort ? 'on' : ''}" onclick="toggleOverviewMultiSort()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">Multi-sort</span>
+    </div>
+    <span class="sort-hint">Tap a header to sort · Turn on Multi-sort to add levels</span>`;
 }
 
 function toggleOverviewActiveOnly() {
   overviewActiveOnly = !overviewActiveOnly;
-  renderOverviewFilters(appData);
+  renderOverviewFilters();
   renderOverviewTable(appData);
 }
 
-function setOverviewSort(mode) {
-  overviewSortMode = mode;
-  renderOverviewFilters(appData);
-  renderOverviewTable(appData);
+function toggleOverviewMultiSort() {
+  overviewMultiSort = !overviewMultiSort;
+  renderOverviewFilters();
 }
 
 // ── Render: Roster Cards ───────────────────────────────────────────────────
 function renderRosters({ teams, teamNames, activeNames }) {
+  // Cards start collapsed on phones, expanded on larger screens
+  const open = !isPhone();
   const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
   document.getElementById('rosters-grid').innerHTML = sorted.map(t => {
     const tm = teams[t];
@@ -1062,8 +1170,8 @@ function renderRosters({ teams, teamNames, activeNames }) {
     const castawayRows = [...tm.castaways]
       .sort((a, b) => a.eliminated - b.eliminated || b.total - a.total)
       .map(c => {
-        return `<div class="castaway-row ${c.eliminated ? 'out' : ''}">
-          <div class="castaway-name clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</div>
+        return `<div class="castaway-row clickable-row ${c.eliminated ? 'out' : ''}" data-castaway="${c.name.replace(/"/g, '&quot;')}">
+          <div class="castaway-name clickable">${c.name}</div>
           <div class="castaway-pts" style="color:${c.eliminated ? 'var(--muted)' : tm.color}">${fmt(c.total)}</div>
         </div>`;
       }).join('');
@@ -1074,16 +1182,16 @@ function renderRosters({ teams, teamNames, activeNames }) {
         <span class="name ${guessAlive ? 'guess-alive' : 'guess-out'}">${guess} ${guessAlive ? '🟢' : '☠️'}</span>
       </div>` : '';
 
-    return `<div class="roster-card" style="border-top:3px solid ${tm.color}">
-      <div class="roster-header">
-        <div class="roster-player" style="color:${tm.color}">${t}</div>
+    return `<details class="roster-card" style="border-top:3px solid ${tm.color}" ${open ? 'open' : ''}>
+      <summary class="roster-header">
+        <div class="roster-player" style="color:${tm.color}">${t}<span class="roster-chevron">▸</span></div>
         <div class="roster-meta">
           <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
           ${guessSection}
         </div>
-      </div>
+      </summary>
       <div class="castaway-list">${castawayRows}</div>
-    </div>`;
+    </details>`;
   }).join('');
 }
 
@@ -1108,6 +1216,25 @@ function renderScoring() {
   `).join('');
 }
 
+// ── Section Tabs ───────────────────────────────────────────────────────────
+// Highlight the tab for the section currently in view
+function initSectionTabs() {
+  const nav = document.getElementById('section-tabs');
+  const links = [...nav.querySelectorAll('a')];
+  const setActive = id => links.forEach(a => {
+    const on = a.getAttribute('href') === '#' + id;
+    a.classList.toggle('active', on);
+    // Keep the active tab visible in the bar (without touching page scroll)
+    if (on && (a.offsetLeft < nav.scrollLeft || a.offsetLeft + a.offsetWidth > nav.scrollLeft + nav.clientWidth)) {
+      nav.scrollLeft = a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2;
+    }
+  });
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('main section[id]').forEach(sec => observer.observe(sec));
+}
+
 // ── Castaway Detail (bottom sheet / modal) ───────────────────────────────
 function openSheet(name) {
   const c = appData.castaways.find(x => x.name === name);
@@ -1115,8 +1242,8 @@ function openSheet(name) {
 
   const allEntries = appData.castaways.filter(x => x.name === name);
   const draftedBy = [...new Set(allEntries.map(x => x.team))];
-  const ownerColor = appData.teamColor[c.team] || '#94a3b8';
-  const draftedByHtml = draftedBy.map(t => `<strong style="color:${appData.teamColor[t] || '#94a3b8'}">${t}</strong>`).join(', ');
+  const ownerColor = appData.teamColor[c.team] || FALLBACK_COLOR;
+  const draftedByHtml = draftedBy.map(t => `<strong style="color:${appData.teamColor[t] || FALLBACK_COLOR}">${t}</strong>`).join(', ');
   const statusBadge = c.eliminated
     ? '<span style="color:var(--ember);font-size:0.8rem">☠️ Eliminated</span>'
     : '<span class="active-badge">Active</span>';
@@ -1233,6 +1360,8 @@ function closeSheet() {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+// Open the detail sheet for any element (or row) tagged with data-castaway
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-castaway]');
   if (el) openSheet(el.dataset.castaway);
@@ -1315,9 +1444,10 @@ async function main() {
 
     renderStandings(appData);
     renderTeamChart(appData);
-    renderOverviewFilters(appData);
+    renderOverviewFilters();
     renderOverviewTable(appData);
     renderRosters(appData);
+    initSectionTabs();
 
   } catch (err) {
     document.getElementById('loading').style.display = 'none';
