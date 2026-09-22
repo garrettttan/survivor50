@@ -8,5 +8,6 @@ const CONFIG = {
     contestants: "Contestants",
     events: "Events",
     scoring: "Scoring",
+    config: "Config",
   },
 };

@@ -351,13 +351,14 @@
       height: 350px;
     }
 
-    .castaway-chart-wrap {
-      position: relative;
-      height: 580px; /* enough for 24 bars */
+    /* ── Game Overview ───────────────────────────────────────── */
+    .overview-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
     }
-    @media (max-width: 640px) {
-      .castaway-chart-wrap { height: 480px; }
-    }
+    .standings-table tr.out td { opacity: 0.4; }
+    .standings-table tr.out .castaway-name-cell { text-decoration: line-through; }
 
     /* ── Castaway Detail (bottom sheet on mobile, modal on desktop) */
     .clickable { cursor: pointer; transition: color 0.15s; }
@@ -584,24 +585,35 @@
 
   <!-- CHARTS -->
   <section>
-    <h2 class="section-title">📈 CHARTS</h2>
+    <h2 class="section-title">📈 STANDINGS OVER TIME</h2>
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-label">Team Cumulative Points</div>
         <div class="team-chart-scroll">
           <div class="team-chart-inner">
             <canvas id="team-chart"></canvas>
           </div>
         </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-label">Points by Castaway</div>
-        <div class="chart-controls" id="castaway-filters"></div>
-        <div class="castaway-chart-wrap">
-          <canvas id="castaway-chart"></canvas>
-        </div>
-      </div>
+    </div>
+  </section>
 
+  <!-- GAME OVERVIEW -->
+  <section>
+    <h2 class="section-title">🧭 GAME OVERVIEW</h2>
+    <div class="chart-controls" id="overview-filters"></div>
+    <div class="table-scroll">
+    <table class="standings-table" id="overview-table">
+      <thead>
+        <tr>
+          <th>Castaway</th>
+          <th>Tribe</th>
+          <th>Advantages</th>
+          <th>Team(s)</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody id="overview-body"></tbody>
+    </table>
     </div>
   </section>
 
@@ -630,7 +642,6 @@
 // ── State ─────────────────────────────────────────────────────────────────
 let appData = null;
 let teamChartInst = null;
-let castawayChartInst = null;
 
 function fmt(n) {
   const s = n.toFixed(1);
@@ -676,9 +687,10 @@ function getTribeColor(name) {
   return { color: hex, bg: hexToRgba(hex, 0.15), border: hexToRgba(hex, 0.35) };
 }
 
-function tribeBadge(name) {
+function tribeBadge(name, faded = false) {
   const t = getTribeColor(name);
-  return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border}">${name}</span>`;
+  const opacity = faded ? 'opacity:0.45;' : '';
+  return `<span class="badge badge-tribe" style="color:${t.color};background:${t.bg};border-color:${t.border};${opacity}">${name}</span>`;
 }
 
 // ── Shared Helpers ────────────────────────────────────────────────────────
@@ -717,10 +729,18 @@ function buildTeamCumulativePoints(teams, teamNames, activeWeeks) {
   });
 }
 
-function buildTribeColors(castaways) {
+function buildTribeColors(castaways, tribeColorConfig) {
   const tribeNames = [...new Set(castaways.flatMap(c => c.tribes.map(t => t.value)))].sort();
   const tribeColor = {};
-  tribeNames.forEach((t, i) => { tribeColor[t] = PALETTE[i % PALETTE.length]; });
+  let paletteIdx = 0;
+  tribeNames.forEach(t => {
+    if (tribeColorConfig && tribeColorConfig[t]) {
+      tribeColor[t] = tribeColorConfig[t];
+    } else {
+      tribeColor[t] = PALETTE[paletteIdx % PALETTE.length];
+      paletteIdx++;
+    }
+  });
   return tribeColor;
 }
 
@@ -758,7 +778,7 @@ function parseCSV(text) {
 }
 
 // ── Event-Based Data Processing ───────────────────────────────────────────
-function processEventData(rosterRows, eventRows, teamPicks) {
+function processEventData(rosterRows, eventRows, teamPicks, tribeColorConfig) {
   const rHeaders = rosterRows[0].map(h => h.trim().toLowerCase());
   const rCol = name => rHeaders.indexOf(name.toLowerCase());
 
@@ -813,6 +833,7 @@ function processEventData(rosterRows, eventRows, teamPicks) {
   const eHeaders = eventRows[0].map(h => h.trim().toLowerCase());
   const eCol = name => eHeaders.indexOf(name.toLowerCase());
 
+  let merged = false;
   const expandedEvents = [];
   for (let r = 1; r < eventRows.length; r++) {
     const row = eventRows[r];
@@ -823,6 +844,7 @@ function processEventData(rosterRows, eventRows, teamPicks) {
     const otherPlayer = (row[eCol('other player')] || '').trim();
     const eventLower = event.toLowerCase();
 
+    if (eventLower === 'merge') merged = true;
     if (eventLower === 'tribe swap' || eventLower === 'merge') continue;
 
     if (eventLower === 'voted out' || eventLower === 'medivacked') {
@@ -870,9 +892,9 @@ function processEventData(rosterRows, eventRows, teamPicks) {
   const { teamNames, teamColor, teams } = buildTeams(castaways, teamPicks);
   buildTeamCumulativePoints(teams, teamNames, activeWeeks);
   const activeNames = buildActiveNames(castaways);
-  const tribeColor = buildTribeColors(castaways);
+  const tribeColor = buildTribeColors(castaways, tribeColorConfig);
 
-  return { castaways, teams, teamNames, teamColor, tribeColor, activeWeeks, currentWeekNum, activeNames };
+  return { castaways, teams, teamNames, teamColor, tribeColor, activeWeeks, currentWeekNum, activeNames, merged };
 }
 
 // ── Chart Helpers ──────────────────────────────────────────────────────────
@@ -937,29 +959,15 @@ function renderTeamChart({ teams, teamNames, activeWeeks }) {
   teamChartInst = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: opts });
 }
 
-// ── Render: Castaway Chart ─────────────────────────────────────────────────
-function stripePattern(ctx, color1, color2, eliminated) {
-  const a = eliminated ? '44' : 'cc';
-  const size = 16;
-  const pat = document.createElement('canvas');
-  pat.width = size; pat.height = size;
-  const pc = pat.getContext('2d');
-  // Vertical stripes — each color gets half the tile
-  pc.fillStyle = color1 + a;
-  pc.fillRect(0, 0, size / 2, size);
-  pc.fillStyle = color2 + a;
-  pc.fillRect(size / 2, 0, size / 2, size);
-  return ctx.createPattern(pat, 'repeat');
-}
+// ── Render: Game Overview Table ─────────────────────────────────────────────
+let overviewActiveOnly = false;
+let overviewSortMode = 'points'; // 'points', 'name', 'tribe', or 'elimination'
 
-let castawayActiveOnly = false;
-let castawaySortMode = 'points'; // 'points' or 'elimination'
-
-function renderCastawayChart({ castaways, teamColor }) {
+function renderOverviewTable({ castaways, teamColor, merged }) {
   let subset = castaways;
-  if (castawayActiveOnly) subset = subset.filter(c => !c.eliminated);
+  if (overviewActiveOnly) subset = subset.filter(c => !c.eliminated);
 
-  // Group by castaway name, collecting every team they appear on
+  // Group by castaway name, collecting every team that drafted them
   const byName = new Map();
   subset.forEach(c => {
     if (!byName.has(c.name)) {
@@ -971,94 +979,76 @@ function renderCastawayChart({ castaways, teamColor }) {
   });
 
   let unique = [...byName.values()];
-  if (castawaySortMode === 'elimination') {
+  if (overviewSortMode === 'elimination') {
     // Active castaways first (no eliminatedWeek), then eliminated in reverse order (last out first)
     unique.sort((a, b) => {
       const aElim = a.eliminated ? (a.eliminatedWeek ?? 999) : 9999;
       const bElim = b.eliminated ? (b.eliminatedWeek ?? 999) : 9999;
       return bElim - aElim || b.total - a.total;
     });
+  } else if (overviewSortMode === 'name') {
+    unique.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (overviewSortMode === 'tribe' && !merged) {
+    const currentTribe = c => c.tribes.length ? c.tribes[c.tribes.length - 1].value : '';
+    unique.sort((a, b) => currentTribe(a).localeCompare(currentTribe(b)) || a.name.localeCompare(b.name));
   } else {
-    unique.sort((a, b) => b.total - a.total);
+    unique.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
   }
 
-  const labels  = unique.map(c => c.name);
-  const data    = unique.map(c => c.total);
+  document.getElementById('overview-body').innerHTML = unique.map(c => {
+    const tribeValues = [...new Set(c.tribes.map(t => t.value))].reverse();
+    const tribeHtml = tribeValues
+      .map((v, i) => tribeBadge(v, merged || i > 0))
+      .join(' ');
 
-  // Adjust chart height based on number of bars
-  const wrap = document.querySelector('.castaway-chart-wrap');
-  wrap.style.height = Math.max(unique.length * 26, 200) + 'px';
+    const advValues = c.advantages ? c.advantages.split(',').map(a => a.trim()).filter(Boolean) : [];
+    const advHtml = advValues.length
+      ? advValues.map(a => `<span class="badge badge-adv">${a}</span>`).join(' ')
+      : '<span style="color:var(--muted)">—</span>';
 
-  const ctx = document.getElementById('castaway-chart').getContext('2d');
-  if (castawayChartInst) castawayChartInst.destroy();
+    const teamsHtml = c.teams.map(t => `<strong style="color:${teamColor[t] || '#94a3b8'}">${t}</strong>`).join(', ');
 
-  const bgColors = unique.map(c => {
-    const elim = c.eliminated;
-    if (c.teams.length === 1) return teamColor[c.teams[0]] + (elim ? '44' : 'cc');
-    return stripePattern(ctx, teamColor[c.teams[0]], teamColor[c.teams[1]], elim);
-  });
-  const borders = unique.map(c => teamColor[c.teams[0]]);
-
-  castawayChartInst = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data, backgroundColor: bgColors, borderColor: borders, borderWidth: 1, borderRadius: 3 }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      onClick: (event, elements) => {
-        if (elements.length > 0) openSheet(unique[elements[0].index].name);
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1c1209',
-          borderColor: '#3d2a0f',
-          borderWidth: 1,
-          titleColor: '#fef3c7',
-          bodyColor: '#a8995c',
-          callbacks: {
-            label: ctx => ` ${ctx.parsed.x} pts — ${unique[ctx.dataIndex].teams.join(' + ')}`,
-            afterLabel: ctx => unique[ctx.dataIndex].eliminated ? '  ☠️ eliminated' : '',
-          },
-        },
-      },
-      scales: {
-        x: { ticks: { color: '#a8995c', font: { family: 'Oswald' } }, grid: { color: '#3d2a0f' } },
-        y: { ticks: { color: '#fef3c7', font: { family: 'Open Sans', size: 10 } }, grid: { color: '#3d2a0f' } },
-      },
-    },
-  });
-
+    return `<tr class="${c.eliminated ? 'out' : ''}">
+      <td><span class="castaway-name-cell clickable" data-castaway="${c.name.replace(/"/g, '&quot;')}">${c.name}</span></td>
+      <td><div class="overview-badges">${tribeHtml}</div></td>
+      <td><div class="overview-badges">${advHtml}</div></td>
+      <td>${teamsHtml}</td>
+      <td><span class="points-cell" style="font-size:1.1rem">${fmt(c.total)}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // ── Render: Filter Pills ───────────────────────────────────────────────────
-function renderFilters(data) {
-  const container = document.getElementById('castaway-filters');
+function renderOverviewFilters(data) {
+  if (data.merged && overviewSortMode === 'tribe') overviewSortMode = 'points';
+
+  const tribeOption = data.merged ? '' :
+    `<option value="tribe" ${overviewSortMode === 'tribe' ? 'selected' : ''}>Sort by tribe</option>`;
+
+  const container = document.getElementById('overview-filters');
   container.innerHTML = `
-    <div class="toggle-wrap ${castawayActiveOnly ? 'on' : ''}" onclick="toggleActiveOnly()">
+    <div class="toggle-wrap ${overviewActiveOnly ? 'on' : ''}" onclick="toggleOverviewActiveOnly()">
       <div class="toggle-track"><div class="toggle-thumb"></div></div>
       <span class="toggle-label">Active only</span>
     </div>
-    <select class="sort-select" onchange="setCastawaySort(this.value)">
-      <option value="points" ${castawaySortMode === 'points' ? 'selected' : ''}>Sort by points</option>
-      <option value="elimination" ${castawaySortMode === 'elimination' ? 'selected' : ''}>Sort by elimination</option>
+    <select class="sort-select" onchange="setOverviewSort(this.value)">
+      <option value="points" ${overviewSortMode === 'points' ? 'selected' : ''}>Sort by points</option>
+      <option value="name" ${overviewSortMode === 'name' ? 'selected' : ''}>Sort by name</option>
+      ${tribeOption}
+      <option value="elimination" ${overviewSortMode === 'elimination' ? 'selected' : ''}>Sort by elimination</option>
     </select>`;
 }
 
-function toggleActiveOnly() {
-  castawayActiveOnly = !castawayActiveOnly;
-  renderFilters(appData);
-  renderCastawayChart(appData);
+function toggleOverviewActiveOnly() {
+  overviewActiveOnly = !overviewActiveOnly;
+  renderOverviewFilters(appData);
+  renderOverviewTable(appData);
 }
 
-function setCastawaySort(mode) {
-  castawaySortMode = mode;
-  renderFilters(appData);
-  renderCastawayChart(appData);
+function setOverviewSort(mode) {
+  overviewSortMode = mode;
+  renderOverviewFilters(appData);
+  renderOverviewTable(appData);
 }
 
 // ── Render: Roster Cards ───────────────────────────────────────────────────
@@ -1255,12 +1245,29 @@ async function main() {
   logoEl.alt = CONFIG.SEASON_TITLE;
   document.title = CONFIG.SEASON_TITLE;
 
-  const [teamsRes, contestantsRes, eventsRes, scoringRes] = await Promise.all([
+  const [teamsRes, contestantsRes, eventsRes, scoringRes, configRes] = await Promise.all([
     fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.teams)).catch(() => null),
     fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.contestants)).catch(() => null),
     fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.events)).catch(() => null),
     fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.scoring)).catch(() => null),
+    fetch(SHEET_BASE + encodeURIComponent(CONFIG.SHEETS.config)).catch(() => null),
   ]);
+
+  // Parse tribe colors from Config sheet (columns: Tribe, Color)
+  const tribeColorConfig = {};
+  try {
+    if (configRes && configRes.ok) {
+      const rows = parseCSV(await configRes.text());
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const tribeIdx = headers.indexOf('tribe');
+      const colorIdx = headers.indexOf('color');
+      for (let r = 1; r < rows.length; r++) {
+        const tribe = (rows[r][tribeIdx] || '').trim();
+        const color = (rows[r][colorIdx] || '').trim();
+        if (tribe && color) tribeColorConfig[tribe] = color;
+      }
+    }
+  } catch (_) {}
 
   // Parse scoring rules from Scoring sheet (columns: Category, Event, Points)
   try {
@@ -1301,15 +1308,15 @@ async function main() {
 
     const contestantsRows = parseCSV(await contestantsRes.text());
     const eventsRows = parseCSV(await eventsRes.text());
-    appData = processEventData(contestantsRows, eventsRows, teamPicks);
+    appData = processEventData(contestantsRows, eventsRows, teamPicks, tribeColorConfig);
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
 
     renderStandings(appData);
     renderTeamChart(appData);
-    renderFilters(appData);
-    renderCastawayChart(appData);
+    renderOverviewFilters(appData);
+    renderOverviewTable(appData);
     renderRosters(appData);
 
   } catch (err) {
