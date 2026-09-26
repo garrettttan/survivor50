@@ -445,7 +445,7 @@
     }
     .sheet-scroll {
       overflow-y: auto;
-      padding: 1.75rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+      padding: 1.4rem 1rem calc(1rem + env(safe-area-inset-bottom));
       flex: 1;
       min-height: 0;
     }
@@ -472,13 +472,19 @@
         pointer-events: auto;
       }
       .sheet-handle { display: none; }
+      .sheet-scroll { padding: 1rem 1.25rem 1.25rem; }
     }
 
+    .sheet-top {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 0.75rem;
+    }
     .sheet-hero-name {
       font-family: 'Oswald', sans-serif;
       font-size: 1.4rem;
       font-weight: 700;
       color: var(--text);
+      min-width: 0;
     }
     .sheet-meta {
       display: flex; align-items: center; gap: 0.5rem;
@@ -487,14 +493,10 @@
     .sheet-pts {
       font-family: 'Oswald', sans-serif;
       font-size: 1.2rem; font-weight: 700;
+      white-space: nowrap;
     }
-    .sheet-owner {
-      font-size: 0.8rem; color: var(--muted);
-      padding-top: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .sheet-section { margin-top: 1.25rem; }
+    .sheet-owner { font-size: 0.8rem; color: var(--muted); }
+    .sheet-section { margin-top: 0.9rem; }
     .sheet-section-header {
       font-family: 'Oswald', sans-serif;
       font-size: 0.8rem; color: var(--muted);
@@ -503,18 +505,20 @@
       display: flex; align-items: center; gap: 0.5rem;
     }
     .sheet-scoring {
-      margin-top: 1rem;
+      margin-top: 0.75rem;
       background: rgba(61,42,15,0.05);
       border: 1px solid rgba(61,42,15,0.2);
       border-radius: 8px;
-      padding: 1rem;
+      padding: 0.75rem;
     }
+    .sheet-week { margin-bottom: 0.5rem; }
+    .sheet-week:last-child { margin-bottom: 0; }
     .sheet-scoring .sheet-section-header {
       color: var(--fire);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
     .sheet-tribes {
-      margin-top: 1.25rem;
+      margin-top: 0.75rem;
       border-top: 1px solid rgba(61,42,15,0.2);
       padding-top: 0.75rem;
     }
@@ -523,7 +527,7 @@
       color: var(--text);
       margin-bottom: 0.25rem;
     }
-    .sheet-tribes .sheet-section:first-child { margin-top: 0.75rem; }
+    .sheet-tribes .sheet-section:first-child { margin-top: 0.5rem; }
     .sheet-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 0.4rem 0;
@@ -1294,7 +1298,7 @@ function openSheet(name) {
     eventsHtml = `<div class="sheet-scoring">
       <div class="sheet-section-header">Scoring Breakdown</div>
       ${weekEntries.map(([week, events]) => `
-        <div style="margin-bottom:0.5rem">
+        <div class="sheet-week">
           <div style="font-size:0.7rem;color:var(--muted);letter-spacing:1px;font-family:Oswald;margin-bottom:0.2rem">WEEK ${week}</div>
           ${events.map(e => `<div class="sheet-row">
             <span class="sheet-row-name">${e.event}${e.idol ? ` <span style="color:var(--muted)">(${e.idol})</span>` : ''}${e.otherPlayer ? ` <span style="color:var(--muted)">— ${e.otherPlayer}</span>` : ''}</span>
@@ -1306,12 +1310,14 @@ function openSheet(name) {
   }
 
   document.getElementById('sheet-body').innerHTML = `
-    <div class="sheet-hero-name">${c.name}</div>
-    <div class="sheet-meta">
+    <div class="sheet-top">
+      <div class="sheet-hero-name">${c.name}</div>
       <span class="sheet-pts" style="color:${ownerColor}">${fmt(c.total)} pts</span>
-      ${statusBadge} ${advHtml}
     </div>
-    <div class="sheet-owner">Drafted by ${draftedByHtml}</div>
+    <div class="sheet-meta">
+      ${statusBadge} ${advHtml}
+      <span class="sheet-owner">Drafted by ${draftedByHtml}</span>
+    </div>
     ${eventsHtml}
     <div class="sheet-tribes">
       <div class="sheet-section-header">Past Tribes</div>
