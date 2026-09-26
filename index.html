@@ -106,6 +106,11 @@
       padding-bottom: 0.5rem;
       margin-bottom: 1.5rem;
     }
+    .section-hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: -1rem 0 1rem;
+    }
 
     /* ── Standings ───────────────────────────────────────────── */
     .standings-table {
@@ -248,42 +253,39 @@
       overflow: hidden;
     }
     .roster-header {
-      display: block;
-      padding: 1rem 1.25rem 0.85rem;
+      padding: 0.7rem 1rem 0.6rem;
       border-bottom: 1px solid var(--card-border);
-      list-style: none;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
     }
-    .roster-header::-webkit-details-marker { display: none; }
-    .roster-card:not([open]) .roster-header { border-bottom: none; }
-    .roster-chevron {
-      display: inline-block;
-      font-size: 0.8em;
-      margin-left: 0.4rem;
-      color: var(--muted);
-      transition: transform 0.2s;
+    .roster-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
     }
-    .roster-card[open] .roster-chevron { transform: rotate(90deg); }
     .roster-player {
       font-family: 'Oswald', sans-serif;
       font-size: 1.25rem;
       font-weight: 700;
-    }
-    .roster-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 0.4rem;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .roster-pts {
       font-family: 'Oswald', sans-serif;
-      font-size: 2rem;
+      font-size: 1.5rem;
       font-weight: 700;
       line-height: 1;
+      flex-shrink: 0;
     }
-    .roster-guess { font-size: 0.8rem; color: var(--muted); text-align: right; }
-    .roster-guess .name { font-weight: 600; display: block; }
+    .roster-guess {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .castaway-list { padding: 0.25rem 0; }
     .castaway-row {
@@ -292,7 +294,9 @@
       align-items: flex-start;
       padding: 0.55rem 1.25rem;
       border-bottom: 1px solid rgba(61,42,15,0.15);
+      transition: background-color 0.15s;
     }
+    .castaway-row:active { background-color: rgba(61,42,15,0.1); transition: none; }
     .castaway-row:last-child { border-bottom: none; }
     .castaway-row.out { opacity: 0.38; }
     .castaway-row.out .castaway-name { text-decoration: line-through; }
@@ -536,6 +540,7 @@
       main { padding: 1rem 0.75rem; }
       section { margin-bottom: 2rem; }
       .section-title { font-size: 1.1rem; margin-bottom: 1rem; }
+      .section-hint { margin: -0.6rem 0 0.75rem; }
 
       .standings-table th,
       .standings-table td { padding: 0.6rem 0.75rem; }
@@ -547,12 +552,14 @@
 
       .scoring-grid { grid-template-columns: 1fr; gap: 1rem; }
 
-      .rosters-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .rosters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
 
-      .roster-header { padding: 0.85rem 1rem 0.75rem; }
-      .roster-pts { font-size: 1.6rem; }
-      .castaway-row { padding: 0.5rem 1rem; }
+      .roster-header { padding: 0.6rem 0.7rem 0.5rem; }
+      .roster-player { font-size: 1.05rem; }
+      .roster-pts { font-size: 1.25rem; }
+      .castaway-row { padding: 0.4rem 0.7rem; }
       .castaway-name { font-size: 0.82rem; }
+      .castaway-pts { font-size: 0.95rem; min-width: 2rem; }
 
       .badge { font-size: 0.7rem; }
       .team-chart-inner { height: 260px; }
@@ -670,6 +677,7 @@
   <!-- ROSTERS -->
   <section id="rosters">
     <h2 class="section-title">🏝️ TEAM ROSTERS</h2>
+    <p class="section-hint">Tap any castaway for details</p>
     <div class="rosters-grid" id="rosters-grid"></div>
   </section>
 
@@ -1159,9 +1167,7 @@ function toggleOverviewMultiSort() {
 
 // ── Render: Roster Cards ───────────────────────────────────────────────────
 function renderRosters({ teams, teamNames, activeNames }) {
-  // Cards start collapsed on phones, expanded on larger screens
-  const open = !isPhone();
-  const sorted = [...teamNames].sort((a, b) => teams[b].totalPoints - teams[a].totalPoints);
+  const sorted = [...teamNames].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
   document.getElementById('rosters-grid').innerHTML = sorted.map(t => {
     const tm = teams[t];
     const guess = tm.survivorGuess;
@@ -1177,21 +1183,18 @@ function renderRosters({ teams, teamNames, activeNames }) {
       }).join('');
 
     const guessSection = guess ? `
-      <div class="roster-guess">
-        🏆 Pick
-        <span class="name ${guessAlive ? 'guess-alive' : 'guess-out'}">${guess} ${guessAlive ? '🟢' : '☠️'}</span>
-      </div>` : '';
+      <div class="roster-guess">🏆 <span class="${guessAlive ? 'guess-alive' : 'guess-out'}">${guess}</span> ${guessAlive ? '🟢' : '☠️'}</div>` : '';
 
-    return `<details class="roster-card" style="border-top:3px solid ${tm.color}" ${open ? 'open' : ''}>
-      <summary class="roster-header">
-        <div class="roster-player" style="color:${tm.color}">${t}<span class="roster-chevron">▸</span></div>
-        <div class="roster-meta">
+    return `<div class="roster-card" style="border-top:3px solid ${tm.color}">
+      <div class="roster-header">
+        <div class="roster-top">
+          <div class="roster-player" style="color:${tm.color}">${t}</div>
           <div class="roster-pts" style="color:${tm.color}">${fmt(tm.totalPoints)}</div>
-          ${guessSection}
         </div>
-      </summary>
+        ${guessSection}
+      </div>
       <div class="castaway-list">${castawayRows}</div>
-    </details>`;
+    </div>`;
   }).join('');
 }
 
@@ -1366,6 +1369,9 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-castaway]');
   if (el) openSheet(el.dataset.castaway);
 });
+
+// iOS Safari only applies :active styles when a touch listener is registered
+document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ── Main ───────────────────────────────────────────────────────────────────
 async function main() {
