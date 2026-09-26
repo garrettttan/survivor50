@@ -362,6 +362,11 @@
       flex-wrap: wrap;
       gap: 0.3rem;
     }
+    #overview-table .points-cell { font-size: 1.1rem; }
+    /* Tap feedback matching the roster castaway rows. Opaque so the sticky
+       name column doesn't show content scrolling beneath it. */
+    #overview-table td { transition: background-color 0.15s; }
+    #overview-table tr:active td { background-color: #eceae7; transition: none; }
     .standings-table tr.out td { opacity: 0.4; }
     .standings-table tr.out .castaway-name-cell { text-decoration: line-through; }
 
@@ -579,6 +584,11 @@
       #overview-table tr.out td:first-child > * { opacity: 0.4; }
       #overview-table td:nth-child(3),
       #overview-table td:nth-child(6) { white-space: nowrap; }
+      #overview-table th,
+      #overview-table td { padding: 0.35rem 0.6rem; }
+      #overview-table .points-cell { font-size: 0.95rem; }
+      /* Only the current tribe; full tribe history is in the detail sheet */
+      #overview-table td:nth-child(2) .badge-tribe:not(:first-child) { display: none; }
     }
 
     /* ── Loading / Error ─────────────────────────────────────── */
@@ -1095,7 +1105,7 @@ function renderOverviewTable({ castaways, teamColor, merged }) {
     return `<tr class="clickable-row ${c.eliminated ? 'out' : ''}" data-castaway="${c.name.replace(/"/g, '&quot;')}">
       <td><span class="castaway-name-cell clickable">${c.name}</span></td>
       <td><div class="overview-badges">${tribeHtml}</div></td>
-      <td><span class="points-cell" style="font-size:1.1rem">${fmt(c.total)}</span></td>
+      <td><span class="points-cell">${fmt(c.total)}</span></td>
       <td><div class="overview-badges">${advHtml}</div></td>
       <td>${teamsHtml}</td>
       <td>${statusHtml}</td>
